@@ -317,6 +317,7 @@
     "period": "期間",
     "noMemoriesIngestedInPeriod": "この期間に取り込まれたメモリはありません",
     "totalSuffix": "合計",
+    "runningTotal": "累計",
     "operations": "オペレーション",
     "noOperationsYet": "オペレーションがまだありません",
     "opsCompleted": "完了",

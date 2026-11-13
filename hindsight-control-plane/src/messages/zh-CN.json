@@ -317,6 +317,7 @@
     "period": "周期",
     "noMemoriesIngestedInPeriod": "此周期内无记忆摄入",
     "totalSuffix": "总计",
+    "runningTotal": "累计",
     "operations": "操作",
     "noOperationsYet": "暂无操作",
     "opsCompleted": "已完成",

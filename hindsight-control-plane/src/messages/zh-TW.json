@@ -317,6 +317,7 @@
     "period": "期間",
     "noMemoriesIngestedInPeriod": "此期間內沒有匯入記憶",
     "totalSuffix": "總計",
+    "runningTotal": "累計",
     "operations": "操作",
     "noOperationsYet": "尚無操作",
     "opsCompleted": "已完成",
