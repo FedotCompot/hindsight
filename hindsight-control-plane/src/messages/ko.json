@@ -763,7 +763,9 @@
       "type": "유형",
       "created": "생성일",
       "updated": "업데이트됨",
-      "completed": "완료됨",
+      "started": "시작됨",
+      "ended": "종료됨",
+      "duration": "소요 시간",
       "progress": "진행 상황",
       "lastHeartbeat": "마지막 신호"
     },

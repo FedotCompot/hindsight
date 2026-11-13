@@ -44,6 +44,11 @@ import {
 import { Spinner } from "@/components/ui/spinner";
 import { DocumentChunkModal } from "./document-chunk-modal";
 import { withBasePath } from "@/lib/base-path";
+import {
+  formatDuration,
+  operationDurationMs,
+  type OperationRunTimes,
+} from "@/lib/operation-timing";
 
 interface Operation {
   id: string;
@@ -52,6 +57,8 @@ interface Operation {
   document_id: string | null;
   created_at: string;
   updated_at?: string | null;
+  started_at?: string | null;
+  completed_at?: string | null;
   status: string;
   error_message: string | null;
   next_retry_at?: string | null;
@@ -81,6 +88,7 @@ type OperationDetails =
       operation_type: string | null;
       created_at: string | null;
       updated_at: string | null;
+      started_at?: string | null;
       completed_at: string | null;
       error_message: string | null;
       next_retry_at?: string | null;
@@ -104,6 +112,7 @@ type OperationDetails =
       operation_type?: never;
       created_at?: never;
       updated_at?: never;
+      started_at?: never;
       completed_at?: never;
       error_message?: never;
       next_retry_at?: never;
@@ -298,6 +307,21 @@ export function BankOperationsView({
     if (secs < 60) return t("heartbeat.secondsAgo", { secs });
     if (secs < 3600) return t("heartbeat.minutesAgo", { mins: Math.floor(secs / 60) });
     return t("heartbeat.hoursAgo", { hours: Math.floor(secs / 3600) });
+  };
+
+  // A running operation is timed against the 1s tick, in whole seconds so it counts up steadily.
+  const renderDuration = (op: OperationRunTimes) => {
+    const ms = operationDurationMs(op, nowMs);
+    if (ms === null) return "—";
+    return formatDuration(op.completed_at ? ms : Math.floor(ms / 1000) * 1000);
+  };
+
+  // Time alone when it falls on the day the row's Created column already shows.
+  const formatRunTime = (iso: string, createdIso: string) => {
+    const at = new Date(iso);
+    return at.toDateString() === new Date(createdIso).toDateString()
+      ? at.toLocaleTimeString()
+      : at.toLocaleString();
   };
 
   // Render the last-known progress snapshot for a running operation. The worker writes
@@ -669,6 +693,9 @@ export function BankOperationsView({
                     <TableHead className="w-[100px]">{t("table.id")}</TableHead>
                     <TableHead>{t("table.type")}</TableHead>
                     <TableHead>{t("table.created")}</TableHead>
+                    <TableHead>{t("field.started")}</TableHead>
+                    <TableHead>{t("field.ended")}</TableHead>
+                    <TableHead>{t("field.duration")}</TableHead>
                     <TableHead>{t("field.updated")}</TableHead>
                     {/* Fixed width so the row doesn't reflow when the inline progress
                         appears/disappears as an operation starts or finishes. */}
@@ -701,6 +728,23 @@ export function BankOperationsView({
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         {new Date(op.created_at).toLocaleString()}
+                      </TableCell>
+                      <TableCell
+                        className="text-sm text-muted-foreground whitespace-nowrap"
+                        title={op.started_at ? new Date(op.started_at).toLocaleString() : undefined}
+                      >
+                        {op.started_at ? formatRunTime(op.started_at, op.created_at) : "—"}
+                      </TableCell>
+                      <TableCell
+                        className="text-sm text-muted-foreground whitespace-nowrap"
+                        title={
+                          op.completed_at ? new Date(op.completed_at).toLocaleString() : undefined
+                        }
+                      >
+                        {op.completed_at ? formatRunTime(op.completed_at, op.created_at) : "—"}
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground font-mono whitespace-nowrap">
+                        {renderDuration(op)}
                       </TableCell>
                       <TableCell
                         className="text-sm text-muted-foreground"
@@ -889,13 +933,33 @@ export function BankOperationsView({
                           : t("notAvailable")}
                       </div>
                     </div>
+                    {selectedOperation.started_at && (
+                      <div>
+                        <div className="text-sm font-medium text-muted-foreground">
+                          {t("field.started")}
+                        </div>
+                        <div className="mt-1 text-sm">
+                          {new Date(selectedOperation.started_at).toLocaleString()}
+                        </div>
+                      </div>
+                    )}
                     {selectedOperation.completed_at && (
                       <div>
                         <div className="text-sm font-medium text-muted-foreground">
-                          {t("field.completed")}
+                          {t("field.ended")}
                         </div>
                         <div className="mt-1 text-sm">
                           {new Date(selectedOperation.completed_at).toLocaleString()}
+                        </div>
+                      </div>
+                    )}
+                    {operationDurationMs(selectedOperation, nowMs) !== null && (
+                      <div>
+                        <div className="text-sm font-medium text-muted-foreground">
+                          {t("field.duration")}
+                        </div>
+                        <div className="mt-1 text-sm font-mono">
+                          {renderDuration(selectedOperation)}
                         </div>
                       </div>
                     )}

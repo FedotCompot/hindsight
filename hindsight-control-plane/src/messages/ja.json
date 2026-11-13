@@ -763,7 +763,9 @@
       "type": "タイプ",
       "created": "作成日時",
       "updated": "更新日時",
-      "completed": "完了日時",
+      "started": "開始日時",
+      "ended": "終了日時",
+      "duration": "所要時間",
       "progress": "進捗",
       "lastHeartbeat": "最終更新"
     },

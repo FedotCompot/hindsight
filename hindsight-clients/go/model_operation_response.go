@@ -32,6 +32,8 @@ type OperationResponse struct {
 	Details NullableRefreshMentalModelOperationDetails `json:"details,omitempty"`
 	CreatedAt string `json:"created_at"`
 	UpdatedAt NullableString `json:"updated_at,omitempty"`
+	StartedAt NullableString `json:"started_at,omitempty"`
+	CompletedAt NullableString `json:"completed_at,omitempty"`
 	Status string `json:"status"`
 	ErrorMessage NullableString `json:"error_message"`
 	RetryCount NullableInt32 `json:"retry_count,omitempty"`
@@ -454,6 +456,90 @@ func (o *OperationResponse) UnsetUpdatedAt() {
 	o.UpdatedAt.Unset()
 }
 
+// GetStartedAt returns the StartedAt field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *OperationResponse) GetStartedAt() string {
+	if o == nil || IsNil(o.StartedAt.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.StartedAt.Get()
+}
+
+// GetStartedAtOk returns a tuple with the StartedAt field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *OperationResponse) GetStartedAtOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.StartedAt.Get(), o.StartedAt.IsSet()
+}
+
+// HasStartedAt returns a boolean if a field has been set.
+func (o *OperationResponse) HasStartedAt() bool {
+	if o != nil && o.StartedAt.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetStartedAt gets a reference to the given NullableString and assigns it to the StartedAt field.
+func (o *OperationResponse) SetStartedAt(v string) {
+	o.StartedAt.Set(&v)
+}
+// SetStartedAtNil sets the value for StartedAt to be an explicit nil
+func (o *OperationResponse) SetStartedAtNil() {
+	o.StartedAt.Set(nil)
+}
+
+// UnsetStartedAt ensures that no value is present for StartedAt, not even an explicit nil
+func (o *OperationResponse) UnsetStartedAt() {
+	o.StartedAt.Unset()
+}
+
+// GetCompletedAt returns the CompletedAt field value if set, zero value otherwise (both if not set or set to explicit null).
+func (o *OperationResponse) GetCompletedAt() string {
+	if o == nil || IsNil(o.CompletedAt.Get()) {
+		var ret string
+		return ret
+	}
+	return *o.CompletedAt.Get()
+}
+
+// GetCompletedAtOk returns a tuple with the CompletedAt field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+// NOTE: If the value is an explicit nil, `nil, true` will be returned
+func (o *OperationResponse) GetCompletedAtOk() (*string, bool) {
+	if o == nil {
+		return nil, false
+	}
+	return o.CompletedAt.Get(), o.CompletedAt.IsSet()
+}
+
+// HasCompletedAt returns a boolean if a field has been set.
+func (o *OperationResponse) HasCompletedAt() bool {
+	if o != nil && o.CompletedAt.IsSet() {
+		return true
+	}
+
+	return false
+}
+
+// SetCompletedAt gets a reference to the given NullableString and assigns it to the CompletedAt field.
+func (o *OperationResponse) SetCompletedAt(v string) {
+	o.CompletedAt.Set(&v)
+}
+// SetCompletedAtNil sets the value for CompletedAt to be an explicit nil
+func (o *OperationResponse) SetCompletedAtNil() {
+	o.CompletedAt.Set(nil)
+}
+
+// UnsetCompletedAt ensures that no value is present for CompletedAt, not even an explicit nil
+func (o *OperationResponse) UnsetCompletedAt() {
+	o.CompletedAt.Unset()
+}
+
 // GetStatus returns the Status field value
 func (o *OperationResponse) GetStatus() string {
 	if o == nil {
@@ -664,6 +750,12 @@ func (o OperationResponse) ToMap() (map[string]interface{}, error) {
 	toSerialize["created_at"] = o.CreatedAt
 	if o.UpdatedAt.IsSet() {
 		toSerialize["updated_at"] = o.UpdatedAt.Get()
+	}
+	if o.StartedAt.IsSet() {
+		toSerialize["started_at"] = o.StartedAt.Get()
+	}
+	if o.CompletedAt.IsSet() {
+		toSerialize["completed_at"] = o.CompletedAt.Get()
 	}
 	toSerialize["status"] = o.Status
 	toSerialize["error_message"] = o.ErrorMessage.Get()

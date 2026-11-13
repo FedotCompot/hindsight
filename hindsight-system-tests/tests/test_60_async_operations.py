@@ -16,6 +16,7 @@ the first instead of doing the work twice.
 from __future__ import annotations
 
 import uuid
+from datetime import datetime
 
 import pytest
 
@@ -129,3 +130,24 @@ async def test_the_list_and_the_single_read_name_fields_the_same(client, bank_id
     assert (single.id, single.operation_id) == (response.operation_id, response.operation_id)
     assert listed.task_type == listed.operation_type == single.task_type == single.operation_type
     assert listed.mental_model_id is None and single.mental_model_id is None
+
+
+async def test_the_operation_says_when_it_ran(client, bank_id, settled):
+    """How long the work waited and how long it took are both read off the record:
+    queued at `created_at`, picked up by a worker at `started_at`, ended at
+    `completed_at`, the same on the list as on the single read. The receipt of an
+    async retain only hands the work out, so the times are on the retain it queued."""
+    response = await client.aretain(bank_id=bank_id, content=CONTENT, retain_async=True)
+    await settled(bank_id)
+
+    receipt = await client.operations.get_operation_status(bank_id, response.operation_id)
+    [handed_out] = receipt.child_operations
+    ran = await client.operations.get_operation_status(bank_id, handed_out.operation_id)
+    listing = await client.operations.list_operations(bank_id, type="retain", limit=100)
+    listed = next(op for op in listing.operations if op.id == handed_out.operation_id)
+
+    created, started, ended = (datetime.fromisoformat(at) for at in (ran.created_at, ran.started_at, ran.completed_at))
+    assert created <= started <= ended
+    assert (listed.started_at, listed.completed_at) == (ran.started_at, ran.completed_at)
+    # No worker ever picks the receipt itself up.
+    assert receipt.started_at is None and receipt.completed_at is not None

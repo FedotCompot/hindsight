@@ -763,7 +763,9 @@
       "type": "Tipo",
       "created": "Criada",
       "updated": "Atualizada",
-      "completed": "Concluída",
+      "started": "Iniciada",
+      "ended": "Finalizada",
+      "duration": "Duração",
       "progress": "Progresso",
       "lastHeartbeat": "Último sinal"
     },

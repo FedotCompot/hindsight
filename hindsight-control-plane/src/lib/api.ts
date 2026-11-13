@@ -904,6 +904,10 @@ export class ControlPlaneClient {
         mental_model_id?: string | null;
         created_at: string;
         updated_at?: string | null;
+        /** When a worker picked the operation up for its current or last attempt. */
+        started_at?: string | null;
+        /** When it reached a terminal status. */
+        completed_at?: string | null;
         status: string;
         error_message: string | null;
         /** For a pending operation, a value in the future means the worker is
@@ -1744,6 +1748,7 @@ export class ControlPlaneClient {
       operation_type: string | null;
       created_at: string | null;
       updated_at: string | null;
+      started_at?: string | null;
       completed_at: string | null;
       error_message: string | null;
       next_retry_at?: string | null;

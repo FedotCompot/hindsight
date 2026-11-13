@@ -763,7 +763,9 @@
       "type": "類型",
       "created": "建立時間",
       "updated": "更新時間",
-      "completed": "完成時間",
+      "started": "開始時間",
+      "ended": "結束時間",
+      "duration": "耗時",
       "progress": "進度",
       "lastHeartbeat": "最後心跳"
     },

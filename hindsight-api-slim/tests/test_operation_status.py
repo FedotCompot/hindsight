@@ -10,7 +10,7 @@ Regression tests:
 
 import asyncio
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 import httpx
 import pytest
@@ -131,6 +131,40 @@ async def test_get_operation_returns_processing_status(api_client, memory, test_
     data = response.json()
     assert data["status"] == "processing"
     assert data["operation_id"] == processing_id
+
+
+@pytest.mark.asyncio
+async def test_run_times_reported_from_claim_and_completion(api_client, memory, test_bank_id):
+    """started_at is when a worker claimed the operation, completed_at when it ended; a queued one has neither."""
+    pool = memory._pool
+    await _ensure_bank(pool, test_bank_id)
+
+    queued_id = await _insert_operation(pool, test_bank_id, "pending")
+    finished_id = await _insert_operation(pool, test_bank_id, "completed")
+    started = datetime(2026, 1, 15, 10, 30, tzinfo=timezone.utc)
+    ended = started + timedelta(seconds=90)
+    await pool.execute(
+        "UPDATE async_operations SET claimed_at = $2, completed_at = $3 WHERE operation_id = $1",
+        uuid.UUID(finished_id),
+        started,
+        ended,
+    )
+
+    response = await api_client.get(f"/v1/default/banks/{test_bank_id}/operations")
+    assert response.status_code == 200
+    ops = {op["id"]: op for op in response.json()["operations"]}
+    assert datetime.fromisoformat(ops[finished_id]["started_at"]) == started
+    assert datetime.fromisoformat(ops[finished_id]["completed_at"]) == ended
+    assert ops[queued_id].get("started_at") is None
+    assert ops[queued_id].get("completed_at") is None
+
+    response = await api_client.get(f"/v1/default/banks/{test_bank_id}/operations/{finished_id}")
+    assert response.status_code == 200
+    assert datetime.fromisoformat(response.json()["started_at"]) == started
+    assert datetime.fromisoformat(response.json()["completed_at"]) == ended
+
+    response = await api_client.get(f"/v1/default/banks/{test_bank_id}/operations/{queued_id}")
+    assert response.json().get("started_at") is None
 
 
 @pytest.mark.asyncio

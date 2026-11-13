@@ -763,7 +763,9 @@
       "type": "Type",
       "created": "Created",
       "updated": "Updated",
-      "completed": "Completed",
+      "started": "Started",
+      "ended": "Ended",
+      "duration": "Duration",
       "progress": "Progress",
       "lastHeartbeat": "Last heartbeat"
     },
