@@ -762,7 +762,9 @@
       "type": "Tipo",
       "created": "Creada",
       "updated": "Actualizada",
-      "completed": "Completada",
+      "started": "Iniciada",
+      "ended": "Finalizada",
+      "duration": "Duración",
       "progress": "Progreso",
       "lastHeartbeat": "Último latido"
     },
