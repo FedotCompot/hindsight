@@ -317,6 +317,7 @@
     "period": "기간",
     "noMemoriesIngestedInPeriod": "이 기간에 수집된 메모리 없음",
     "totalSuffix": "합계",
+    "runningTotal": "누적 합계",
     "operations": "작업",
     "noOperationsYet": "아직 작업 없음",
     "opsCompleted": "완료됨",

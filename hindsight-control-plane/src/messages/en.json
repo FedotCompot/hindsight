@@ -317,6 +317,7 @@
     "period": "Period",
     "noMemoriesIngestedInPeriod": "No memories ingested in this period",
     "totalSuffix": "total",
+    "runningTotal": "Running total",
     "operations": "Operations",
     "noOperationsYet": "No operations yet",
     "opsCompleted": "completed",
