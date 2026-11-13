@@ -25,6 +25,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
+import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
@@ -124,6 +125,16 @@ interface TimeseriesBucket {
 }
 
 type FactKey = "world" | "experience" | "observation";
+const FACT_KEYS: FactKey[] = ["world", "experience", "observation"];
+
+/** Each bucket's counts replaced by their sum over the buckets up to and including it. */
+export function toRunningTotals<T extends Record<FactKey, number>>(buckets: T[]): T[] {
+  const running: Record<FactKey, number> = { world: 0, experience: 0, observation: 0 };
+  return buckets.map((b) => {
+    for (const k of FACT_KEYS) running[k] += b[k] || 0;
+    return { ...b, ...running };
+  });
+}
 
 // Palette. Memory-type hues deliberately avoid the link-type hues (teal/blue/amber)
 // so the two distributions read as different dimensions.
@@ -1030,6 +1041,7 @@ export function MemoriesActivityChart({
     experience: true,
     observation: true,
   });
+  const [cumulative, setCumulative] = useState(false);
 
   useEffect(() => {
     if (!bankId) return;
@@ -1058,6 +1070,7 @@ export function MemoriesActivityChart({
     (sum, b) => sum + factSeries.reduce((s, k) => s + (enabledSeries[k] ? b[k] || 0 : 0), 0),
     0
   );
+  const plottedData = cumulative ? toRunningTotals(chartData) : chartData;
   const toggleSeries = (k: FactKey) => setEnabledSeries((prev) => ({ ...prev, [k]: !prev[k] }));
   const factLabel: Record<FactKey, string> = {
     world: t("world"),
@@ -1090,21 +1103,27 @@ export function MemoriesActivityChart({
             ))}
           </div>
         </div>
-        <div className="flex items-center gap-0.5 rounded-md bg-muted/60 p-0.5 w-fit">
-          {TIME_FIELDS.map((tf) => (
-            <button
-              key={tf}
-              onClick={() => setTimeField(tf)}
-              title={timeFieldLabels[tf].long}
-              className={`px-2 py-0.5 text-[11px] font-medium rounded transition-colors ${
-                timeField === tf
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              {timeFieldLabels[tf].short}
-            </button>
-          ))}
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-0.5 rounded-md bg-muted/60 p-0.5 w-fit">
+            {TIME_FIELDS.map((tf) => (
+              <button
+                key={tf}
+                onClick={() => setTimeField(tf)}
+                title={timeFieldLabels[tf].long}
+                className={`px-2 py-0.5 text-[11px] font-medium rounded transition-colors ${
+                  timeField === tf
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {timeFieldLabels[tf].short}
+              </button>
+            ))}
+          </div>
+          <label className="flex items-center gap-2 cursor-pointer text-[11px] font-medium text-muted-foreground">
+            <Switch checked={cumulative} onCheckedChange={setCumulative} />
+            {t("runningTotal")}
+          </label>
         </div>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
@@ -1143,7 +1162,7 @@ export function MemoriesActivityChart({
         ) : (
           <div className="h-[180px]">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData} margin={{ top: 8, right: 8, bottom: 0, left: -10 }}>
+              <AreaChart data={plottedData} margin={{ top: 8, right: 8, bottom: 0, left: -10 }}>
                 <defs>
                   {factSeries.map((k) => (
                     <linearGradient key={k} id={`grad-${k}`} x1="0" y1="0" x2="0" y2="1">
