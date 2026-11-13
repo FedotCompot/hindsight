@@ -6424,10 +6424,11 @@ paths:
       - LLM Traces
   /v1/default/banks/{bank_id}/llm-requests/stats:
     get:
-      description: "Get LLM request counts grouped by time bucket and status for charting.\
-        \ Only requests within HINDSIGHT_API_LLM_TRACE_RETENTION_DAYS are kept, so\
-        \ a period longer than `retention_days` (in the response; null = kept forever)\
-        \ only covers the last `retention_days`."
+      description: "Get LLM request counts grouped by time bucket and status for charting,\
+        \ with each bucket's token sums and the summed duration of its calls. Only\
+        \ requests within HINDSIGHT_API_LLM_TRACE_RETENTION_DAYS are kept, so a period\
+        \ longer than `retention_days` (in the response; null = kept forever) only\
+        \ covers the last `retention_days`."
       operationId: llm_request_stats
       parameters:
       - explode: false
@@ -6472,8 +6473,8 @@ paths:
           title: Period
           type: string
         style: form
-      - description: Also split each bucket by model or by operation (returned in
-          `series`)
+      - description: "Also split each bucket by model or by operation (returned in\
+          \ `series`: calls, tokens, summed duration and failed calls of each)"
         explode: true
         in: query
         name: split_by
@@ -9985,17 +9986,29 @@ components:
       - total
       title: LLMRequestListResponse
     LLMRequestSeriesSums:
-      description: Calls and tokens (total + reasoning) of one model or operation
-        within a time bucket.
+      description: |-
+        What one model or operation did within a time bucket.
+
+        Calls, tokens (total + reasoning), the summed duration of the calls, and how many failed.
       example:
-        calls: 9
-        tokens: 3
+        duration_ms: 4
+        calls: 3
+        tokens: 2
+        errors: 7
       properties:
         calls:
           title: Calls
           type: integer
         tokens:
           title: Tokens
+          type: integer
+        duration_ms:
+          default: 0
+          title: Duration Ms
+          type: integer
+        errors:
+          default: 0
+          title: Errors
           type: integer
       required:
       - calls
@@ -10004,11 +10017,14 @@ components:
     LLMRequestStatsBucket:
       description: A single time bucket in LLM request stats.
       example:
+        duration_ms: 9
         total: 6
         series:
           key:
-            calls: 9
-            tokens: 3
+            duration_ms: 4
+            calls: 3
+            tokens: 2
+            errors: 7
         statuses:
           key: 0
         tokens:
@@ -10031,6 +10047,10 @@ components:
           type: integer
         tokens:
           $ref: '#/components/schemas/LLMRequestTokenSums'
+        duration_ms:
+          default: 0
+          title: Duration Ms
+          type: integer
         series:
           additionalProperties:
             $ref: '#/components/schemas/LLMRequestSeriesSums'
@@ -10046,14 +10066,17 @@ components:
       example:
         period: period
         trunc: trunc
-        retention_days: 2
+        retention_days: 1
         bank_id: bank_id
         buckets:
-        - total: 6
+        - duration_ms: 9
+          total: 6
           series:
             key:
-              calls: 9
-              tokens: 3
+              duration_ms: 4
+              calls: 3
+              tokens: 2
+              errors: 7
           statuses:
             key: 0
           tokens:
@@ -10063,11 +10086,14 @@ components:
             total: 7
             cached: 5
           time: time
-        - total: 6
+        - duration_ms: 9
+          total: 6
           series:
             key:
-              calls: 9
-              tokens: 3
+              duration_ms: 4
+              calls: 3
+              tokens: 2
+              errors: 7
           statuses:
             key: 0
           tokens:

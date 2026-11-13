@@ -155,7 +155,8 @@ function formatDurationMs(ms: number | null): string {
   if (ms === null || ms === undefined) return "—";
   if (ms < 1000) return `${ms}ms`;
   if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
-  return `${(ms / 60000).toFixed(1)}m`;
+  if (ms < 3_600_000) return `${(ms / 60000).toFixed(1)}m`;
+  return `${(ms / 3_600_000).toFixed(1)}h`;
 }
 
 // Compact token count: 950 → "950", 1300 → "1.3k", 2_400_000 → "2.4M".
@@ -652,6 +653,39 @@ export function TraceDialog({
 
 // ---- Chart Section ----
 
+/** What the chart plots: calls made, tokens used, time spent in calls, or calls that failed. */
+export type LLMChartMetric = "calls" | "tokens" | "time" | "failures";
+
+type LLMSeriesSums = NonNullable<LLMRequestStatsBucket["series"]>[string];
+
+/** One bucket's value for a metric. Time and failures are absent on an older server: 0. */
+export function bucketMetricValue(bucket: LLMRequestStatsBucket, metric: LLMChartMetric): number {
+  switch (metric) {
+    case "calls":
+      return bucket.total;
+    case "tokens":
+      return (bucket.tokens?.total ?? 0) + (bucket.tokens?.thoughts ?? 0);
+    case "time":
+      return bucket.duration_ms ?? 0;
+    case "failures":
+      return bucket.statuses?.error ?? 0;
+  }
+}
+
+/** The same, for one model's or operation's line within a bucket. */
+export function seriesMetricValue(sums: LLMSeriesSums, metric: LLMChartMetric): number {
+  switch (metric) {
+    case "calls":
+      return sums.calls;
+    case "tokens":
+      return sums.tokens;
+    case "time":
+      return sums.duration_ms ?? 0;
+    case "failures":
+      return sums.errors ?? 0;
+  }
+}
+
 function LLMRequestChart({ bankId }: { bankId: string }) {
   const t = useTranslations("llmRequestsView");
   const operationOptions = getOperationOptions(t);
@@ -665,7 +699,7 @@ function LLMRequestChart({ bankId }: { bankId: string }) {
   const [buckets, setBuckets] = useState<LLMRequestStatsBucket[]>([]);
   const [trunc, setTrunc] = useState("day");
   const [loading, setLoading] = useState(false);
-  const [metric, setMetric] = useState<"calls" | "tokens">("calls");
+  const [metric, setMetric] = useState<LLMChartMetric>("calls");
   const [cumulative, setCumulative] = useState(false);
   const [retentionDays, setRetentionDays] = useState<number | null>(null);
   // One line overall, one per model / operation (split server-side), or — for
@@ -704,23 +738,21 @@ function LLMRequestChart({ bankId }: { bankId: string }) {
   }, [bankId]);
 
   // Build per-bucket points, applying a running sum when cumulative is on.
-  const running = { calls: 0, input: 0, output: 0, thoughts: 0, cached: 0, total: 0 };
+  const running = { value: 0, input: 0, output: 0, thoughts: 0, cached: 0 };
   const chartData = buckets.map((b) => {
     const point = {
-      calls: b.total,
+      value: bucketMetricValue(b, metric),
       input: b.tokens?.input ?? 0,
       output: b.tokens?.output ?? 0,
       thoughts: b.tokens?.thoughts ?? 0,
       cached: b.tokens?.cached ?? 0,
-      total: (b.tokens?.total ?? 0) + (b.tokens?.thoughts ?? 0),
     };
     if (cumulative) {
-      running.calls += point.calls;
+      running.value += point.value;
       running.input += point.input;
       running.output += point.output;
       running.thoughts += point.thoughts;
       running.cached += point.cached;
-      running.total += point.total;
     }
     const v = cumulative ? running : point;
     return { time: formatChartLabel(b.time, trunc), ...v };
@@ -735,7 +767,7 @@ function LLMRequestChart({ bankId }: { bankId: string }) {
     const point: Record<string, string | number> = { time: formatChartLabel(b.time, trunc) };
     for (const name of seriesNames) {
       const sums = b.series?.[name];
-      const v = sums ? (metric === "calls" ? sums.calls : sums.tokens) : 0;
+      const v = sums ? seriesMetricValue(sums, metric) : 0;
       seriesRunning[name] = (cumulative ? (seriesRunning[name] ?? 0) : 0) + v;
       point[`s:${name}`] = seriesRunning[name];
     }
@@ -750,6 +782,14 @@ function LLMRequestChart({ bankId }: { bankId: string }) {
     fontSize: "12px",
     padding: "4px 8px",
   };
+  const formatAxis = (v: number) => (metric === "time" ? formatDurationMs(v) : formatTokens(v));
+  const formatValue = (v: number) => (metric === "time" ? formatDurationMs(v) : v.toLocaleString());
+  const metricLabel = {
+    calls: t("metricCalls"),
+    tokens: t("tokensTotal"),
+    time: t("metricTime"),
+    failures: t("metricFailures"),
+  }[metric];
 
   const renderChart = () => {
     if (split === "model" || split === "operation") {
@@ -762,9 +802,9 @@ function LLMRequestChart({ bankId }: { bankId: string }) {
             tickLine={false}
             width={40}
             allowDecimals={false}
-            tickFormatter={(v) => formatTokens(Number(v))}
+            tickFormatter={(v) => formatAxis(Number(v))}
           />
-          <Tooltip contentStyle={tooltipStyle} />
+          <Tooltip contentStyle={tooltipStyle} formatter={(v) => formatValue(Number(v))} />
           <Legend wrapperStyle={{ fontSize: "10px" }} />
           {seriesNames.map((name, i) => (
             <Line
@@ -833,7 +873,6 @@ function LLMRequestChart({ bankId }: { bankId: string }) {
         </LineChart>
       );
     }
-    const dataKey = metric === "calls" ? "calls" : "total";
     return (
       <LineChart data={chartData} margin={{ top: 5, right: 5, bottom: 0, left: 5 }}>
         <XAxis dataKey="time" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
@@ -843,14 +882,14 @@ function LLMRequestChart({ bankId }: { bankId: string }) {
           tickLine={false}
           width={40}
           allowDecimals={false}
-          tickFormatter={(v) => formatTokens(Number(v))}
+          tickFormatter={(v) => formatAxis(Number(v))}
         />
-        <Tooltip contentStyle={tooltipStyle} />
+        <Tooltip contentStyle={tooltipStyle} formatter={(v) => formatValue(Number(v))} />
         <Line
           type="monotone"
-          dataKey={dataKey}
-          name={metric === "calls" ? t("metricCalls") : t("tokensTotal")}
-          stroke="var(--primary)"
+          dataKey="value"
+          name={metricLabel}
+          stroke={metric === "failures" ? "var(--destructive)" : "var(--primary)"}
           strokeWidth={2}
           dot={false}
           activeDot={{ r: 3 }}
@@ -859,11 +898,13 @@ function LLMRequestChart({ bankId }: { bankId: string }) {
     );
   };
 
-  const periodTotal = buckets.reduce(
-    (sum, b) =>
-      sum + (metric === "calls" ? b.total : (b.tokens?.total ?? 0) + (b.tokens?.thoughts ?? 0)),
-    0
-  );
+  const periodTotal = buckets.reduce((sum, b) => sum + bucketMetricValue(b, metric), 0);
+  const summaryLabel = {
+    calls: t("summaryCalls"),
+    tokens: t("summaryTokens"),
+    time: t("summaryTime"),
+    failures: t("summaryFailures"),
+  }[metric];
   const periodLabel = periodOptions.find((o) => o.value === period)?.label ?? period;
   const periodDays = parseInt(period);
   const lineOptions = [
@@ -885,10 +926,10 @@ function LLMRequestChart({ bankId }: { bankId: string }) {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <div className="text-2xl font-semibold tabular-nums">
-              {loading ? "—" : periodTotal.toLocaleString()}
+              {loading ? "—" : formatValue(periodTotal)}
             </div>
             <div className="text-xs text-muted-foreground">
-              {metric === "calls" ? t("summaryCalls") : t("summaryTokens")} · {periodLabel}
+              {summaryLabel} · {periodLabel}
               {/* The server deletes older requests, so a longer period only covers the kept days. */}
               {retentionDays !== null && (
                 <span
@@ -922,11 +963,13 @@ function LLMRequestChart({ bankId }: { bankId: string }) {
               value={metric}
               onChange={(m) => {
                 setMetric(m);
-                if (m === "calls" && split === "tokenType") changeSplit("none");
+                if (m !== "tokens" && split === "tokenType") changeSplit("none");
               }}
               options={[
                 { value: "calls", label: t("metricCalls") },
                 { value: "tokens", label: t("metricTokens") },
+                { value: "time", label: t("metricTime") },
+                { value: "failures", label: t("metricFailures") },
               ]}
             />
           </div>

@@ -25,6 +25,7 @@ type LLMRequestStatsBucket struct {
 	Statuses map[string]int32 `json:"statuses"`
 	Total int32 `json:"total"`
 	Tokens LLMRequestTokenSums `json:"tokens"`
+	DurationMs *int32 `json:"duration_ms,omitempty"`
 	Series map[string]LLMRequestSeriesSums `json:"series,omitempty"`
 }
 
@@ -40,6 +41,8 @@ func NewLLMRequestStatsBucket(time string, statuses map[string]int32, total int3
 	this.Statuses = statuses
 	this.Total = total
 	this.Tokens = tokens
+	var durationMs int32 = 0
+	this.DurationMs = &durationMs
 	return &this
 }
 
@@ -48,6 +51,8 @@ func NewLLMRequestStatsBucket(time string, statuses map[string]int32, total int3
 // but it doesn't guarantee that properties required by API are set
 func NewLLMRequestStatsBucketWithDefaults() *LLMRequestStatsBucket {
 	this := LLMRequestStatsBucket{}
+	var durationMs int32 = 0
+	this.DurationMs = &durationMs
 	return &this
 }
 
@@ -147,6 +152,38 @@ func (o *LLMRequestStatsBucket) SetTokens(v LLMRequestTokenSums) {
 	o.Tokens = v
 }
 
+// GetDurationMs returns the DurationMs field value if set, zero value otherwise.
+func (o *LLMRequestStatsBucket) GetDurationMs() int32 {
+	if o == nil || IsNil(o.DurationMs) {
+		var ret int32
+		return ret
+	}
+	return *o.DurationMs
+}
+
+// GetDurationMsOk returns a tuple with the DurationMs field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *LLMRequestStatsBucket) GetDurationMsOk() (*int32, bool) {
+	if o == nil || IsNil(o.DurationMs) {
+		return nil, false
+	}
+	return o.DurationMs, true
+}
+
+// HasDurationMs returns a boolean if a field has been set.
+func (o *LLMRequestStatsBucket) HasDurationMs() bool {
+	if o != nil && !IsNil(o.DurationMs) {
+		return true
+	}
+
+	return false
+}
+
+// SetDurationMs gets a reference to the given int32 and assigns it to the DurationMs field.
+func (o *LLMRequestStatsBucket) SetDurationMs(v int32) {
+	o.DurationMs = &v
+}
+
 // GetSeries returns the Series field value if set, zero value otherwise (both if not set or set to explicit null).
 func (o *LLMRequestStatsBucket) GetSeries() map[string]LLMRequestSeriesSums {
 	if o == nil {
@@ -194,6 +231,9 @@ func (o LLMRequestStatsBucket) ToMap() (map[string]interface{}, error) {
 	toSerialize["statuses"] = o.Statuses
 	toSerialize["total"] = o.Total
 	toSerialize["tokens"] = o.Tokens
+	if !IsNil(o.DurationMs) {
+		toSerialize["duration_ms"] = o.DurationMs
+	}
 	if o.Series != nil {
 		toSerialize["series"] = o.Series
 	}

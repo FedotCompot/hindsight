@@ -10412,7 +10412,8 @@ def _register_routes(app: FastAPI):
     @app.get(
         "/v1/default/banks/{bank_id}/llm-requests/stats",
         summary="LLM request statistics",
-        description="Get LLM request counts grouped by time bucket and status for charting. "
+        description="Get LLM request counts grouped by time bucket and status for charting, with each bucket's "
+        "token sums and the summed duration of its calls. "
         "Only requests within HINDSIGHT_API_LLM_TRACE_RETENTION_DAYS are kept, so a period longer than "
         "`retention_days` (in the response; null = kept forever) only covers the last `retention_days`.",
         operation_id="llm_request_stats",
@@ -10428,7 +10429,9 @@ def _register_routes(app: FastAPI):
         ),
         period: str = Query("7d", description="Time period: 1d (by hour), 7d, or 30d (by day)"),
         split_by: LLMStatsSplit | None = Query(
-            None, description="Also split each bucket by model or by operation (returned in `series`)"
+            None,
+            description="Also split each bucket by model or by operation (returned in `series`: calls, tokens, "
+            "summed duration and failed calls of each)",
         ),
         request_context: RequestContext = Depends(get_request_context),
     ):

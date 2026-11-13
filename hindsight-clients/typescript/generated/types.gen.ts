@@ -3271,7 +3271,9 @@ export type LlmRequestListResponse = {
 /**
  * LLMRequestSeriesSums
  *
- * Calls and tokens (total + reasoning) of one model or operation within a time bucket.
+ * What one model or operation did within a time bucket.
+ *
+ * Calls, tokens (total + reasoning), the summed duration of the calls, and how many failed.
  */
 export type LlmRequestSeriesSums = {
   /**
@@ -3282,6 +3284,14 @@ export type LlmRequestSeriesSums = {
    * Tokens
    */
   tokens: number;
+  /**
+   * Duration Ms
+   */
+  duration_ms?: number;
+  /**
+   * Errors
+   */
+  errors?: number;
 };
 
 /**
@@ -3305,6 +3315,10 @@ export type LlmRequestStatsBucket = {
    */
   total: number;
   tokens: LlmRequestTokenSums;
+  /**
+   * Duration Ms
+   */
+  duration_ms?: number;
   /**
    * Series
    */
@@ -12665,7 +12679,7 @@ export type LlmRequestStatsData = {
     /**
      * Split By
      *
-     * Also split each bucket by model or by operation (returned in `series`)
+     * Also split each bucket by model or by operation (returned in `series`: calls, tokens, summed duration and failed calls of each)
      */
     split_by?: "model" | "operation" | null;
   };

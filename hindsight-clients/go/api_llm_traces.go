@@ -313,7 +313,7 @@ func (r ApiLlmRequestStatsRequest) Period(period string) ApiLlmRequestStatsReque
 	return r
 }
 
-// Also split each bucket by model or by operation (returned in &#x60;series&#x60;)
+// Also split each bucket by model or by operation (returned in &#x60;series&#x60;: calls, tokens, summed duration and failed calls of each)
 func (r ApiLlmRequestStatsRequest) SplitBy(splitBy string) ApiLlmRequestStatsRequest {
 	r.splitBy = &splitBy
 	return r
@@ -331,7 +331,7 @@ func (r ApiLlmRequestStatsRequest) Execute() (*LLMRequestStatsResponse, *http.Re
 /*
 LlmRequestStats LLM request statistics
 
-Get LLM request counts grouped by time bucket and status for charting. Only requests within HINDSIGHT_API_LLM_TRACE_RETENTION_DAYS are kept, so a period longer than `retention_days` (in the response; null = kept forever) only covers the last `retention_days`.
+Get LLM request counts grouped by time bucket and status for charting, with each bucket's token sums and the summed duration of its calls. Only requests within HINDSIGHT_API_LLM_TRACE_RETENTION_DAYS are kept, so a period longer than `retention_days` (in the response; null = kept forever) only covers the last `retention_days`.
 
  @param ctx context.Context - for authentication, logging, cancellation, deadlines, tracing, etc. Passed from http.Request or context.Background().
  @param bankId

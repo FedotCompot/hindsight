@@ -32,8 +32,9 @@ class LLMRequestStatsBucket(BaseModel):
     statuses: Dict[str, StrictInt]
     total: StrictInt
     tokens: LLMRequestTokenSums
+    duration_ms: Optional[StrictInt] = 0
     series: Optional[Dict[str, LLMRequestSeriesSums]] = None
-    __properties: ClassVar[List[str]] = ["time", "statuses", "total", "tokens", "series"]
+    __properties: ClassVar[List[str]] = ["time", "statuses", "total", "tokens", "duration_ms", "series"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -105,6 +106,7 @@ class LLMRequestStatsBucket(BaseModel):
             "statuses": obj.get("statuses"),
             "total": obj.get("total"),
             "tokens": LLMRequestTokenSums.from_dict(obj["tokens"]) if obj.get("tokens") is not None else None,
+            "duration_ms": obj.get("duration_ms") if obj.get("duration_ms") is not None else 0,
             "series": dict(
                 (_k, LLMRequestSeriesSums.from_dict(_v))
                 for _k, _v in obj["series"].items()

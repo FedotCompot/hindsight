@@ -121,7 +121,9 @@ async def test_request_stats_split_by_model_and_operation(client, llm, bank_id, 
             break
         await asyncio.sleep(0.1)
     else:
-        raise AssertionError(f"split mismatch: {got_operation} vs {expected_operation}; {got_model} vs {expected_model}")
+        raise AssertionError(
+            f"split mismatch: {got_operation} vs {expected_operation}; {got_model} vs {expected_model}"
+        )
 
     assert "retain" in got_operation
     for stats in (by_operation, by_model):
@@ -133,3 +135,36 @@ async def test_request_stats_split_by_model_and_operation(client, llm, bank_id, 
 
     plain = await traces.llm_request_stats(bank_id, period="1d")
     assert all(b.series is None for b in plain.buckets)
+
+
+async def test_request_stats_say_how_long_calls_took_and_how_many_failed(client, llm, bank_id):
+    # The usage chart also draws time spent in calls and failed calls, overall and per
+    # operation, so those must add up to the request list too: every call's duration, and
+    # every call that failed. Extraction answers with something that is not the JSON asked
+    # for, which is a failed call.
+    llm.on_step("extract_facts").returns_text("this is not the json you asked for")
+    await client.aretain(bank_id=bank_id, content="Alice lives in Lisbon.", retain_async=True)
+
+    traces = LLMTracesApi(client._api_client)
+    # Rows are buffered and written in batches: read until the list and the stats agree.
+    for _ in range(100):
+        listing = await traces.list_llm_requests(bank_id, limit=500)
+        stats = await traces.llm_request_stats(bank_id, period="1d", split_by="operation")
+        failed = [row for row in listing.items if row.status == "error"]
+        expected = (sum(row.duration_ms for row in listing.items), len(failed))
+        got = (
+            sum(bucket.duration_ms for bucket in stats.buckets),
+            sum(bucket.statuses.get("error", 0) for bucket in stats.buckets),
+        )
+        if failed and got == expected:
+            break
+        await asyncio.sleep(0.1)
+    else:
+        raise AssertionError(f"stats (time, failures) {got} do not match the request list {expected}")
+
+    assert {row.operation for row in failed} == {"retain"}
+    for bucket in stats.buckets:
+        # Each bucket's lines add up to the bucket.
+        assert sum(line.duration_ms for line in bucket.series.values()) == bucket.duration_ms
+        assert sum(line.errors for line in bucket.series.values()) == bucket.statuses.get("error", 0)
+    assert sum(bucket.series["retain"].errors for bucket in stats.buckets if "retain" in bucket.series) == len(failed)
