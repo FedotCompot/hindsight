@@ -39,12 +39,14 @@ class OperationResponse(BaseModel):
     details: Optional[RefreshMentalModelOperationDetails] = None
     created_at: StrictStr
     updated_at: Optional[StrictStr] = None
+    started_at: Optional[StrictStr] = None
+    completed_at: Optional[StrictStr] = None
     status: StrictStr
     error_message: Optional[StrictStr]
     retry_count: Optional[StrictInt] = None
     next_retry_at: Optional[StrictStr] = None
     progress: Optional[OperationProgress] = None
-    __properties: ClassVar[List[str]] = ["id", "task_type", "operation_id", "operation_type", "items_count", "document_id", "filename", "mental_model_id", "details", "created_at", "updated_at", "status", "error_message", "retry_count", "next_retry_at", "progress"]
+    __properties: ClassVar[List[str]] = ["id", "task_type", "operation_id", "operation_type", "items_count", "document_id", "filename", "mental_model_id", "details", "created_at", "updated_at", "started_at", "completed_at", "status", "error_message", "retry_count", "next_retry_at", "progress"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -126,6 +128,16 @@ class OperationResponse(BaseModel):
         if self.updated_at is None and "updated_at" in self.model_fields_set:
             _dict['updated_at'] = None
 
+        # set to None if started_at (nullable) is None
+        # and model_fields_set contains the field
+        if self.started_at is None and "started_at" in self.model_fields_set:
+            _dict['started_at'] = None
+
+        # set to None if completed_at (nullable) is None
+        # and model_fields_set contains the field
+        if self.completed_at is None and "completed_at" in self.model_fields_set:
+            _dict['completed_at'] = None
+
         # set to None if error_message (nullable) is None
         # and model_fields_set contains the field
         if self.error_message is None and "error_message" in self.model_fields_set:
@@ -169,6 +181,8 @@ class OperationResponse(BaseModel):
             "details": RefreshMentalModelOperationDetails.from_dict(obj["details"]) if obj.get("details") is not None else None,
             "created_at": obj.get("created_at"),
             "updated_at": obj.get("updated_at"),
+            "started_at": obj.get("started_at"),
+            "completed_at": obj.get("completed_at"),
             "status": obj.get("status"),
             "error_message": obj.get("error_message"),
             "retry_count": obj.get("retry_count"),
