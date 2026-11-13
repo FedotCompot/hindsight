@@ -713,6 +713,63 @@ async def test_stats_split_by_model_and_operation(trace_api_client, memory, bank
 
 
 @pytest.mark.asyncio
+async def test_stats_report_call_time_and_failures(trace_api_client, memory, bank_id):
+    """Each bucket sums the duration of its calls, and a split says per line how long and how many failed."""
+    await trace_api_client.put(f"/v1/default/banks/{bank_id}", json={"name": "Trace Bank"})
+    calls = (
+        ("retain", "model-a", 0.5, None),
+        ("retain", "model-b", 1.5, RuntimeError("boom")),
+        ("reflect", "model-a", 2.0, RuntimeError("boom")),
+        ("reflect", "model-a", 4.0, None),
+    )
+    for operation, model, seconds, error in calls:
+        token = set_trace_context(LLMTraceContext(bank_id=bank_id, operation=operation))
+        try:
+            memory._llm_recorder.record_llm_call(
+                provider="openai",
+                model=model,
+                scope=f"{operation}_call",
+                messages=[{"role": "user", "content": "x"}],
+                response_content="y",
+                duration=seconds,
+                error=error,
+            )
+        finally:
+            llm_trace.reset_trace_context(token)
+    await memory._llm_recorder.flush()
+
+    def per_line(split_by: str) -> dict[str, dict[str, int]]:
+        out: dict[str, dict[str, int]] = {}
+        for bucket in stats[split_by]["buckets"]:
+            for name, sums in bucket["series"].items():
+                line = out.setdefault(name, {"duration_ms": 0, "errors": 0})
+                line["duration_ms"] += sums["duration_ms"]
+                line["errors"] += sums["errors"]
+        return out
+
+    stats = {}
+    for split_by in ("model", "operation"):
+        response = await trace_api_client.get(
+            f"/v1/default/banks/{bank_id}/llm-requests/stats", params={"period": "1d", "split_by": split_by}
+        )
+        assert response.status_code == 200
+        stats[split_by] = response.json()
+    assert per_line("model") == {
+        "model-a": {"duration_ms": 6500, "errors": 1},
+        "model-b": {"duration_ms": 1500, "errors": 1},
+    }
+    assert per_line("operation") == {
+        "retain": {"duration_ms": 2000, "errors": 1},
+        "reflect": {"duration_ms": 6000, "errors": 1},
+    }
+
+    plain = await trace_api_client.get(f"/v1/default/banks/{bank_id}/llm-requests/stats", params={"period": "1d"})
+    buckets = plain.json()["buckets"]
+    assert sum(b["duration_ms"] for b in buckets) == 8000
+    assert sum(b["statuses"].get("error", 0) for b in buckets) == 2
+
+
+@pytest.mark.asyncio
 async def test_list_empty(trace_api_client, bank_id):
     await trace_api_client.put(f"/v1/default/banks/{bank_id}", json={"name": "Trace Bank"})
     response = await trace_api_client.get(f"/v1/default/banks/{bank_id}/llm-requests")

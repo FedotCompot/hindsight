@@ -572,10 +572,16 @@ class LLMRequestTokenSums(BaseModel):
 
 
 class LLMRequestSeriesSums(BaseModel):
-    """Calls and tokens (total + reasoning) of one model or operation within a time bucket."""
+    """What one model or operation did within a time bucket.
+
+    Calls, tokens (total + reasoning), the summed duration of the calls, and how many failed.
+    """
 
     calls: int
     tokens: int
+    # Optional for clients reading an older server.
+    duration_ms: int = 0
+    errors: int = 0
 
 
 class LLMRequestStatsBucket(BaseModel):
@@ -585,6 +591,8 @@ class LLMRequestStatsBucket(BaseModel):
     statuses: dict[str, int]
     total: int
     tokens: LLMRequestTokenSums
+    # Summed duration of the calls; they overlap, so it can exceed the bucket's own length.
+    duration_ms: int = 0
     # Only with ``split_by``: per model or per operation, keyed by its name.
     series: dict[str, LLMRequestSeriesSums] | None = None
 

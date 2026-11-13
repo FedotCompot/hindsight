@@ -19,10 +19,12 @@ import (
 // checks if the LLMRequestSeriesSums type satisfies the MappedNullable interface at compile time
 var _ MappedNullable = &LLMRequestSeriesSums{}
 
-// LLMRequestSeriesSums Calls and tokens (total + reasoning) of one model or operation within a time bucket.
+// LLMRequestSeriesSums What one model or operation did within a time bucket.  Calls, tokens (total + reasoning), the summed duration of the calls, and how many failed.
 type LLMRequestSeriesSums struct {
 	Calls int32 `json:"calls"`
 	Tokens int32 `json:"tokens"`
+	DurationMs *int32 `json:"duration_ms,omitempty"`
+	Errors *int32 `json:"errors,omitempty"`
 }
 
 type _LLMRequestSeriesSums LLMRequestSeriesSums
@@ -35,6 +37,10 @@ func NewLLMRequestSeriesSums(calls int32, tokens int32) *LLMRequestSeriesSums {
 	this := LLMRequestSeriesSums{}
 	this.Calls = calls
 	this.Tokens = tokens
+	var durationMs int32 = 0
+	this.DurationMs = &durationMs
+	var errors int32 = 0
+	this.Errors = &errors
 	return &this
 }
 
@@ -43,6 +49,10 @@ func NewLLMRequestSeriesSums(calls int32, tokens int32) *LLMRequestSeriesSums {
 // but it doesn't guarantee that properties required by API are set
 func NewLLMRequestSeriesSumsWithDefaults() *LLMRequestSeriesSums {
 	this := LLMRequestSeriesSums{}
+	var durationMs int32 = 0
+	this.DurationMs = &durationMs
+	var errors int32 = 0
+	this.Errors = &errors
 	return &this
 }
 
@@ -94,6 +104,70 @@ func (o *LLMRequestSeriesSums) SetTokens(v int32) {
 	o.Tokens = v
 }
 
+// GetDurationMs returns the DurationMs field value if set, zero value otherwise.
+func (o *LLMRequestSeriesSums) GetDurationMs() int32 {
+	if o == nil || IsNil(o.DurationMs) {
+		var ret int32
+		return ret
+	}
+	return *o.DurationMs
+}
+
+// GetDurationMsOk returns a tuple with the DurationMs field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *LLMRequestSeriesSums) GetDurationMsOk() (*int32, bool) {
+	if o == nil || IsNil(o.DurationMs) {
+		return nil, false
+	}
+	return o.DurationMs, true
+}
+
+// HasDurationMs returns a boolean if a field has been set.
+func (o *LLMRequestSeriesSums) HasDurationMs() bool {
+	if o != nil && !IsNil(o.DurationMs) {
+		return true
+	}
+
+	return false
+}
+
+// SetDurationMs gets a reference to the given int32 and assigns it to the DurationMs field.
+func (o *LLMRequestSeriesSums) SetDurationMs(v int32) {
+	o.DurationMs = &v
+}
+
+// GetErrors returns the Errors field value if set, zero value otherwise.
+func (o *LLMRequestSeriesSums) GetErrors() int32 {
+	if o == nil || IsNil(o.Errors) {
+		var ret int32
+		return ret
+	}
+	return *o.Errors
+}
+
+// GetErrorsOk returns a tuple with the Errors field value if set, nil otherwise
+// and a boolean to check if the value has been set.
+func (o *LLMRequestSeriesSums) GetErrorsOk() (*int32, bool) {
+	if o == nil || IsNil(o.Errors) {
+		return nil, false
+	}
+	return o.Errors, true
+}
+
+// HasErrors returns a boolean if a field has been set.
+func (o *LLMRequestSeriesSums) HasErrors() bool {
+	if o != nil && !IsNil(o.Errors) {
+		return true
+	}
+
+	return false
+}
+
+// SetErrors gets a reference to the given int32 and assigns it to the Errors field.
+func (o *LLMRequestSeriesSums) SetErrors(v int32) {
+	o.Errors = &v
+}
+
 func (o LLMRequestSeriesSums) MarshalJSON() ([]byte, error) {
 	toSerialize,err := o.ToMap()
 	if err != nil {
@@ -106,6 +180,12 @@ func (o LLMRequestSeriesSums) ToMap() (map[string]interface{}, error) {
 	toSerialize := map[string]interface{}{}
 	toSerialize["calls"] = o.Calls
 	toSerialize["tokens"] = o.Tokens
+	if !IsNil(o.DurationMs) {
+		toSerialize["duration_ms"] = o.DurationMs
+	}
+	if !IsNil(o.Errors) {
+		toSerialize["errors"] = o.Errors
+	}
 	return toSerialize, nil
 }
 

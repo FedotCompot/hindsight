@@ -2129,7 +2129,7 @@ export const listLlmRequests = <ThrowOnError extends boolean = false>(
 /**
  * LLM request statistics
  *
- * Get LLM request counts grouped by time bucket and status for charting. Only requests within HINDSIGHT_API_LLM_TRACE_RETENTION_DAYS are kept, so a period longer than `retention_days` (in the response; null = kept forever) only covers the last `retention_days`.
+ * Get LLM request counts grouped by time bucket and status for charting, with each bucket's token sums and the summed duration of its calls. Only requests within HINDSIGHT_API_LLM_TRACE_RETENTION_DAYS are kept, so a period longer than `retention_days` (in the response; null = kept forever) only covers the last `retention_days`.
  */
 export const llmRequestStats = <ThrowOnError extends boolean = false>(
   options: Options<LlmRequestStatsData, ThrowOnError>
