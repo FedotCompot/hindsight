@@ -42,6 +42,7 @@ import {
   Download,
 } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
+import { OperationLLMRequests } from "./operation-llm-requests";
 import { DocumentChunkModal } from "./document-chunk-modal";
 import { withBasePath } from "@/lib/base-path";
 import {
@@ -152,11 +153,14 @@ const STATUS_FILTER_VALUES = [
 export function BankOperationsView({
   bankId,
   hideTypeFilter = false,
+  openOperationId,
 }: {
   /** A bank outside the bank context: a knowledge bank, whose page keeps the context empty. */
   bankId?: string;
   /** For a bank with one kind of operation (a knowledge bank only ingests), where the filter has nothing to pick. */
   hideTypeFilter?: boolean;
+  /** An operation to show the details of on arrival, e.g. the one a trace links to. */
+  openOperationId?: string | null;
 } = {}) {
   const t = useTranslations("bankOperations");
   const { currentBank: contextBank } = useBank();
@@ -560,6 +564,10 @@ export function BankOperationsView({
       setLoadingPayload(false);
     }
   };
+
+  useEffect(() => {
+    if (openOperationId && currentBank) handleOperationClick(openOperationId);
+  }, [openOperationId, currentBank]);
 
   // Poll faster while work is in flight so the progress bar / heartbeat feel live, and
   // back off to a calmer cadence when everything is terminal.
@@ -1097,6 +1105,13 @@ export function BankOperationsView({
                         </Button>
                       )}
                     </div>
+                  )}
+
+                  {selectedOperation.operation_id && (
+                    <OperationLLMRequests
+                      bankId={currentBank}
+                      operationId={selectedOperation.operation_id}
+                    />
                   )}
 
                   {/* Outcome details (typed, per-operation-type) */}

@@ -35,6 +35,7 @@ type ApiListLlmRequestsRequest struct {
 	traceId *string
 	documentId *string
 	memoryId *string
+	operationId *string
 	group *bool
 	startDate *string
 	endDate *string
@@ -88,6 +89,12 @@ func (r ApiListLlmRequestsRequest) DocumentId(documentId string) ApiListLlmReque
 // Filter to the operation run(s) that produced or consumed a given memory_unit
 func (r ApiListLlmRequestsRequest) MemoryId(memoryId string) ApiListLlmRequestsRequest {
 	r.memoryId = &memoryId
+	return r
+}
+
+// Filter to the calls a background operation made while it ran. Each of those calls carries the id as &#x60;metadata.operation_id&#x60;. For an async retain that is the retain operation that ran the batch, not the parent the request returned.
+func (r ApiListLlmRequestsRequest) OperationId(operationId string) ApiListLlmRequestsRequest {
+	r.operationId = &operationId
 	return r
 }
 
@@ -192,6 +199,9 @@ func (a *LLMTracesAPIService) ListLlmRequestsExecute(r ApiListLlmRequestsRequest
 	}
 	if r.memoryId != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "memory_id", r.memoryId, "form", "")
+	}
+	if r.operationId != nil {
+		parameterAddToHeaderOrQuery(localVarQueryParams, "operation_id", r.operationId, "form", "")
 	}
 	if r.group != nil {
 		parameterAddToHeaderOrQuery(localVarQueryParams, "group", r.group, "form", "")

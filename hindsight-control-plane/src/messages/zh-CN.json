@@ -770,6 +770,8 @@
       "lastHeartbeat": "最后心跳"
     },
     "outcomeDetails": "结果详情",
+    "llmRequests": "LLM Requests",
+    "llmRequestsSummary": "{calls, plural, other {# 次调用}} · {tokens} 个 token",
     "metadata": "元数据",
     "error": "错误",
     "rawPayloadParentHelp": "这是父级操作，原始载荷存储在每个子批次上。打开子操作以查看其载荷。",
@@ -1600,6 +1602,7 @@
     "detailStatus": "状态：",
     "detailStarted": "开始时间：",
     "detailDuration": "耗时：",
+    "detailBackgroundOperation": "后台操作：",
     "detailInput": "输入",
     "detailOutput": "输出",
     "detailError": "错误",

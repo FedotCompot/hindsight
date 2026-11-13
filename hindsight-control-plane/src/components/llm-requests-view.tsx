@@ -2,8 +2,10 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 import { resolveDateRangePreset } from "@/lib/date-range-preset";
 import { useBank } from "@/lib/bank-context";
+import { bankRoute } from "@/lib/bank-url";
 import {
   client,
   LLMCallType,
@@ -151,7 +153,7 @@ function getPeriodOptions(t: TranslateFn) {
   ];
 }
 
-function formatDurationMs(ms: number | null): string {
+export function formatDurationMs(ms: number | null): string {
   if (ms === null || ms === undefined) return "—";
   if (ms < 1000) return `${ms}ms`;
   if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
@@ -254,7 +256,7 @@ interface TraceGroup {
 
 // Group page rows by trace_id, preserving the incoming (newest-first) order.
 // Rows without a trace_id, or a run with a single call, render as plain rows.
-function groupByTrace(rows: LLMRequestEntry[]): TraceGroup[] {
+export function groupByTrace(rows: LLMRequestEntry[]): TraceGroup[] {
   const groups: TraceGroup[] = [];
   const indexByTrace = new Map<string, number>();
   for (const row of rows) {
@@ -283,7 +285,7 @@ interface GroupAgg {
 
 // Aggregate a run: summed tokens, error-if-any, earliest start, and wall-clock
 // duration (first call start → last call end) — the operation span.
-function aggregateGroup(rows: LLMRequestEntry[]): GroupAgg {
+export function aggregateGroup(rows: LLMRequestEntry[]): GroupAgg {
   const tokens = rows.reduce((sum, r) => sum + (totalTokens(r) ?? 0), 0);
   const starts = rows
     .map((r) => (r.started_at ? new Date(r.started_at).getTime() : NaN))
@@ -496,11 +498,14 @@ export function TraceDialog({
   entry,
   open,
   onOpenChange,
+  operationLink = true,
 }: {
   bankId: string;
   entry: LLMRequestEntry | null;
   open: boolean;
   onOpenChange: (o: boolean) => void;
+  /** Off where the dialog is already shown inside that operation's details. */
+  operationLink?: boolean;
 }) {
   const t = useTranslations("llmRequestsView");
   const [spans, setSpans] = useState<LLMRequestEntry[]>([]);
@@ -569,6 +574,10 @@ export function TraceDialog({
     )?.metadata ?? entry?.metadata;
   const createdMemoryIds = metadataIdList(traceMeta, "memory_ids");
   const sourceMemoryIds = metadataIdList(traceMeta, "source_memory_ids");
+  // Stamped on every call a background operation's task makes.
+  const operationId = [entry, ...spans]
+    .map((s) => s?.metadata?.operation_id)
+    .find((id): id is string => typeof id === "string");
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -603,6 +612,21 @@ export function TraceDialog({
               <span className="font-mono text-foreground">{formatDurationMs(traceSpan)}</span>
             </span>
             {entry?.trace_id && <code className="font-mono">{entry.trace_id.slice(0, 8)}</code>}
+            {operationLink && operationId && (
+              <span>
+                {t("detailBackgroundOperation")}{" "}
+                <Link
+                  href={bankRoute(
+                    bankId,
+                    `?view=profile&bankConfigTab=general&operation=${encodeURIComponent(operationId)}`
+                  )}
+                  title={operationId}
+                  className="font-mono text-foreground underline underline-offset-2 hover:text-primary"
+                >
+                  {operationId.slice(0, 8)}
+                </Link>
+              </span>
+            )}
           </div>
         </DialogHeader>
         {(createdMemoryIds.length > 0 || sourceMemoryIds.length > 0) && (

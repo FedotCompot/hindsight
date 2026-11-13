@@ -2781,6 +2781,8 @@ export class ControlPlaneClient {
       trace_id?: string;
       document_id?: string;
       memory_id?: string;
+      /** The background operation whose task made the calls. */
+      operation_id?: string;
       group?: boolean;
       start_date?: string;
       end_date?: string;
@@ -2797,6 +2799,7 @@ export class ControlPlaneClient {
     if (options?.trace_id) params.append("trace_id", options.trace_id);
     if (options?.document_id) params.append("document_id", options.document_id);
     if (options?.memory_id) params.append("memory_id", options.memory_id);
+    if (options?.operation_id) params.append("operation_id", options.operation_id);
     if (options?.group) params.append("group", "true");
     if (options?.start_date) params.append("start_date", options.start_date);
     if (options?.end_date) params.append("end_date", options.end_date);

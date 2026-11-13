@@ -770,6 +770,8 @@
       "lastHeartbeat": "最終更新"
     },
     "outcomeDetails": "結果の詳細",
+    "llmRequests": "LLMリクエスト",
+    "llmRequestsSummary": "{calls, plural, other {# 回の呼び出し}} · {tokens} トークン",
     "metadata": "メタデータ",
     "error": "エラー",
     "rawPayloadParentHelp": "これは親操作です。生のペイロードは各サブバッチに保存されています。子操作を開いてペイロードを確認してください。",
@@ -1600,6 +1602,7 @@
     "detailStatus": "ステータス：",
     "detailStarted": "開始：",
     "detailDuration": "所要時間：",
+    "detailBackgroundOperation": "バックグラウンド操作：",
     "detailInput": "入力",
     "detailOutput": "出力",
     "detailError": "エラー",

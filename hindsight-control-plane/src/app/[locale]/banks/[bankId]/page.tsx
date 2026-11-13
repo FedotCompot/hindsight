@@ -518,7 +518,7 @@ export default function BankPage() {
                         </p>
                         <div className="space-y-6">
                           <BankStatsView />
-                          <BankOperationsView />
+                          <BankOperationsView openOperationId={searchParams.get("operation")} />
                           <BankProfileView hideReflectFields />
                         </div>
                       </div>

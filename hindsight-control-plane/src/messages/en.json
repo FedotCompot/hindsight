@@ -770,6 +770,8 @@
       "lastHeartbeat": "Last heartbeat"
     },
     "outcomeDetails": "Outcome details",
+    "llmRequests": "LLM Requests",
+    "llmRequestsSummary": "{calls, plural, one {# call} other {# calls}} · {tokens} tokens",
     "metadata": "Metadata",
     "error": "Error",
     "rawPayloadParentHelp": "This is a parent operation — the raw payload is stored on each sub-batch. Open a child operation to inspect its payload.",
@@ -1600,6 +1602,7 @@
     "detailStatus": "Status:",
     "detailStarted": "Started:",
     "detailDuration": "Duration:",
+    "detailBackgroundOperation": "Background operation:",
     "detailInput": "Input",
     "detailOutput": "Output",
     "detailError": "Error",

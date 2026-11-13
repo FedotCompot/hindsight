@@ -195,6 +195,16 @@ def test_record_llm_call_error_record():
     assert r.bank_id is None
 
 
+def test_record_llm_call_carries_the_background_operation():
+    """A call made while a background operation runs is stamped with its id; a call outside one is not."""
+    rec = _CapturingRecorder()
+    with llm_trace.background_operation("op-1"):
+        rec.record_llm_call(provider="mock", model="mock", scope="memory", messages=[])
+    rec.record_llm_call(provider="mock", model="mock", scope="memory", messages=[])
+
+    assert [r.metadata.get("operation_id") for r in rec.records] == ["op-1", None]
+
+
 def test_record_llm_call_disabled_scope_records_nothing():
     rec = _CapturingRecorder(allowed=["reflect"])
     rec.record_llm_call(provider="mock", model="mock", scope="memory", messages=[], duration=0.1)
@@ -896,6 +906,35 @@ async def test_retain_creates_trace_rows_with_tokens(trace_api_client, memory, b
     distinct_traces = {it["trace_id"] for it in data["items"]}
     assert grouped["total"] == len(distinct_traces)
     assert len(grouped["items"]) >= len(data["items"])
+
+
+@pytest.mark.asyncio
+async def test_background_operation_links_to_its_calls(trace_api_client, memory, bank_id):
+    """An async retain's calls carry the id of the operation that ran them, and the list filters on it."""
+    await trace_api_client.put(f"/v1/default/banks/{bank_id}", json={"name": "Trace Bank"})
+    response = await trace_api_client.post(
+        f"/v1/default/banks/{bank_id}/memories",
+        json={"items": [{"content": "Alice likes cats", "context": "preferences"}], "async": True},
+    )
+    assert response.status_code == 200
+    await drain_traces(memory)
+
+    listing = await trace_api_client.get(f"/v1/default/banks/{bank_id}/operations", params={"type": "retain"})
+    [retain] = listing.json()["operations"]
+
+    requests_url = f"/v1/default/banks/{bank_id}/llm-requests"
+    everything = (await trace_api_client.get(requests_url, params={"limit": 500})).json()["items"]
+    linked = (await trace_api_client.get(requests_url, params={"operation_id": retain["id"], "limit": 500})).json()
+
+    assert linked["total"] >= 1
+    assert "retain" in {item["operation"] for item in linked["items"]}
+    # Exactly the calls stamped with this operation: consolidation ran as its own operation.
+    stamped = [item["id"] for item in everything if item["metadata"].get("operation_id") == retain["id"]]
+    assert sorted(item["id"] for item in linked["items"]) == sorted(stamped)
+    assert any(item["metadata"].get("operation_id") != retain["id"] for item in everything)
+
+    unknown = await trace_api_client.get(requests_url, params={"operation_id": "no-such-operation"})
+    assert unknown.json()["total"] == 0
 
 
 @pytest.mark.asyncio

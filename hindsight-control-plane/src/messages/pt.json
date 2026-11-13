@@ -770,6 +770,8 @@
       "lastHeartbeat": "Último sinal"
     },
     "outcomeDetails": "Detalhes do resultado",
+    "llmRequests": "Requisições LLM",
+    "llmRequestsSummary": "{calls, plural, one {# chamada} other {# chamadas}} · {tokens} tokens",
     "metadata": "Metadados",
     "error": "Erro",
     "rawPayloadParentHelp": "Esta é uma operação pai: o payload bruto é armazenado em cada sublote. Abra uma operação filha para inspecionar seu payload.",
@@ -1600,6 +1602,7 @@
     "detailStatus": "Status:",
     "detailStarted": "Iniciado:",
     "detailDuration": "Duração:",
+    "detailBackgroundOperation": "Operação em segundo plano:",
     "detailInput": "Entrada",
     "detailOutput": "Saída",
     "detailError": "Erro",

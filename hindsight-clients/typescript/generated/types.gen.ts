@@ -12588,6 +12588,12 @@ export type ListLlmRequestsData = {
      */
     memory_id?: string | null;
     /**
+     * Operation Id
+     *
+     * Filter to the calls a background operation made while it ran. Each of those calls carries the id as `metadata.operation_id`. For an async retain that is the retain operation that ran the batch, not the parent the request returned.
+     */
+    operation_id?: string | null;
+    /**
      * Group
      *
      * Paginate by operation run (trace) instead of by call; returns whole runs
