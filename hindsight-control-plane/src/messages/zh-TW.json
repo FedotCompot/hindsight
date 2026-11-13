@@ -767,6 +767,8 @@
       "lastHeartbeat": "最後心跳"
     },
     "outcomeDetails": "結果詳情",
+    "llmRequests": "LLM 請求",
+    "llmRequestsSummary": "{calls, plural, other {# 次呼叫}} · {tokens} tokens",
     "metadata": "中繼資料",
     "error": "錯誤",
     "rawPayloadParentHelp": "這是父級操作，原始酬載存放在每個子批次上。開啟子操作以檢視其酬載。",
@@ -1597,6 +1599,7 @@
     "detailStatus": "狀態：",
     "detailStarted": "開始時間：",
     "detailDuration": "耗時：",
+    "detailBackgroundOperation": "背景作業：",
     "detailInput": "輸入",
     "detailOutput": "輸出",
     "detailError": "錯誤",

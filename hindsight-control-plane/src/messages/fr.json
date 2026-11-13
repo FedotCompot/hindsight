@@ -767,6 +767,8 @@
       "lastHeartbeat": "Dernier signal"
     },
     "outcomeDetails": "Détails du résultat",
+    "llmRequests": "Requêtes LLM",
+    "llmRequestsSummary": "{calls, plural, one {# appel} other {# appels}} · {tokens} jetons",
     "metadata": "Métadonnées",
     "error": "Erreur",
     "rawPayloadParentHelp": "Il s'agit d'une opération parente : la charge utile brute est stockée dans chaque sous-lot. Ouvrez une opération enfant pour inspecter sa charge utile.",
@@ -1597,6 +1599,7 @@
     "detailStatus": "Statut :",
     "detailStarted": "Démarré :",
     "detailDuration": "Durée :",
+    "detailBackgroundOperation": "Opération en arrière-plan :",
     "detailInput": "Entrée",
     "detailOutput": "Sortie",
     "detailError": "Erreur",
