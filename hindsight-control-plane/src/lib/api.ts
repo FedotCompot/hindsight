@@ -249,8 +249,13 @@ export interface LLMRequestStatsBucket {
   statuses: Record<string, number>;
   total: number;
   tokens: LLMRequestTokenSums;
-  /** Only with split_by: calls and tokens per model or operation. */
-  series?: Record<string, { calls: number; tokens: number }> | null;
+  /** Summed duration of the bucket's calls. Absent on a server predating it. */
+  duration_ms?: number;
+  /** Only with split_by: calls, tokens, summed call time and failed calls per model or operation. */
+  series?: Record<
+    string,
+    { calls: number; tokens: number; duration_ms?: number; errors?: number }
+  > | null;
 }
 
 export interface LLMRequestStatsResponse {
