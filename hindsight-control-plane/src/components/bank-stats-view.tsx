@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useBank } from "@/lib/bank-context";
@@ -1048,7 +1048,9 @@ export function MemoriesActivityChart({
     const load = async () => {
       try {
         const data = await client.getMemoriesTimeseries(bankId, period, timeField);
-        setTimeseries({ trunc: data.trunc, buckets: data.buckets || [] });
+        const next = { trunc: data.trunc, buckets: data.buckets || [] };
+        // An unchanged poll keeps the same object, so the chart animates real changes only.
+        setTimeseries((prev) => (JSON.stringify(prev) === JSON.stringify(next) ? prev : next));
       } catch (error) {
         console.error("Error loading memories timeseries:", error);
       }
@@ -1061,16 +1063,23 @@ export function MemoriesActivityChart({
   const factSeries: FactKey[] = observationsEnabled
     ? ["world", "experience", "observation"]
     : ["world", "experience"];
-  const chartData = timeseries.buckets.map((b) => ({
-    ...b,
-    label: formatBucketLabel(b.time, timeseries.trunc),
-    tooltipLabel: formatBucketTooltip(b.time, timeseries.trunc),
-  }));
+  const chartData = useMemo(
+    () =>
+      timeseries.buckets.map((b) => ({
+        ...b,
+        label: formatBucketLabel(b.time, timeseries.trunc),
+        tooltipLabel: formatBucketTooltip(b.time, timeseries.trunc),
+      })),
+    [timeseries]
+  );
   const ingestedTotal = chartData.reduce(
     (sum, b) => sum + factSeries.reduce((s, k) => s + (enabledSeries[k] ? b[k] || 0 : 0), 0),
     0
   );
-  const plottedData = cumulative ? toRunningTotals(chartData) : chartData;
+  const plottedData = useMemo(
+    () => (cumulative ? toRunningTotals(chartData) : chartData),
+    [chartData, cumulative]
+  );
   const toggleSeries = (k: FactKey) => setEnabledSeries((prev) => ({ ...prev, [k]: !prev[k] }));
   const factLabel: Record<FactKey, string> = {
     world: t("world"),
@@ -1209,7 +1218,6 @@ export function MemoriesActivityChart({
                       stroke={FACT_META[k].color}
                       strokeWidth={2}
                       fill={`url(#grad-${k})`}
-                      isAnimationActive={false}
                     />
                   ) : null
                 )}
