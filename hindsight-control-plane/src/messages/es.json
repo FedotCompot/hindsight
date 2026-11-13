@@ -767,6 +767,8 @@
       "lastHeartbeat": "Último latido"
     },
     "outcomeDetails": "Detalles del resultado",
+    "llmRequests": "Solicitudes LLM",
+    "llmRequestsSummary": "{calls, plural, one {# llamada} other {# llamadas}} · {tokens} tokens",
     "metadata": "Metadatos",
     "error": "Error",
     "rawPayloadParentHelp": "Esta es una operación principal: la carga útil sin procesar se almacena en cada sublote. Abre una operación secundaria para inspeccionar su carga útil.",
@@ -1597,6 +1599,7 @@
     "detailStatus": "Estado:",
     "detailStarted": "Iniciado:",
     "detailDuration": "Duración:",
+    "detailBackgroundOperation": "Operación en segundo plano:",
     "detailInput": "Entrada",
     "detailOutput": "Salida",
     "detailError": "Error",

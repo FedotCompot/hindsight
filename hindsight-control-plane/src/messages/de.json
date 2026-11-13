@@ -767,6 +767,8 @@
       "lastHeartbeat": "Letzter Heartbeat"
     },
     "outcomeDetails": "Ergebnisdetails",
+    "llmRequests": "LLM Requests",
+    "llmRequestsSummary": "{calls, plural, one {# Aufruf} other {# Aufrufe}} · {tokens} Tokens",
     "metadata": "Metadaten",
     "error": "Fehler",
     "rawPayloadParentHelp": "Dies ist ein übergeordneter Vorgang: Die Rohdaten-Payload wird in jedem Teilbatch gespeichert. Öffnen Sie einen untergeordneten Vorgang, um seine Payload zu prüfen.",
@@ -1597,6 +1599,7 @@
     "detailStatus": "Status:",
     "detailStarted": "Gestartet:",
     "detailDuration": "Dauer:",
+    "detailBackgroundOperation": "Hintergrundoperation:",
     "detailInput": "Eingabe",
     "detailOutput": "Ausgabe",
     "detailError": "Fehler",

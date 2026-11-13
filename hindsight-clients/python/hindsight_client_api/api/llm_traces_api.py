@@ -52,6 +52,7 @@ class LLMTracesApi:
         trace_id: Annotated[Optional[StrictStr], Field(description="Filter to one operation run (all LLM calls sharing a trace)")] = None,
         document_id: Annotated[Optional[StrictStr], Field(description="Filter to LLM calls that processed a given document")] = None,
         memory_id: Annotated[Optional[StrictStr], Field(description="Filter to the operation run(s) that produced or consumed a given memory_unit")] = None,
+        operation_id: Annotated[Optional[StrictStr], Field(description="Filter to the calls a background operation made while it ran. Each of those calls carries the id as `metadata.operation_id`. For an async retain that is the retain operation that ran the batch, not the parent the request returned.")] = None,
         group: Annotated[Optional[StrictBool], Field(description="Paginate by operation run (trace) instead of by call; returns whole runs")] = None,
         start_date: Annotated[Optional[StrictStr], Field(description="Filter from this ISO datetime (inclusive)")] = None,
         end_date: Annotated[Optional[StrictStr], Field(description="Filter until this ISO datetime (exclusive)")] = None,
@@ -93,6 +94,8 @@ class LLMTracesApi:
         :type document_id: str
         :param memory_id: Filter to the operation run(s) that produced or consumed a given memory_unit
         :type memory_id: str
+        :param operation_id: Filter to the calls a background operation made while it ran. Each of those calls carries the id as `metadata.operation_id`. For an async retain that is the retain operation that ran the batch, not the parent the request returned.
+        :type operation_id: str
         :param group: Paginate by operation run (trace) instead of by call; returns whole runs
         :type group: bool
         :param start_date: Filter from this ISO datetime (inclusive)
@@ -137,6 +140,7 @@ class LLMTracesApi:
             trace_id=trace_id,
             document_id=document_id,
             memory_id=memory_id,
+            operation_id=operation_id,
             group=group,
             start_date=start_date,
             end_date=end_date,
@@ -177,6 +181,7 @@ class LLMTracesApi:
         trace_id: Annotated[Optional[StrictStr], Field(description="Filter to one operation run (all LLM calls sharing a trace)")] = None,
         document_id: Annotated[Optional[StrictStr], Field(description="Filter to LLM calls that processed a given document")] = None,
         memory_id: Annotated[Optional[StrictStr], Field(description="Filter to the operation run(s) that produced or consumed a given memory_unit")] = None,
+        operation_id: Annotated[Optional[StrictStr], Field(description="Filter to the calls a background operation made while it ran. Each of those calls carries the id as `metadata.operation_id`. For an async retain that is the retain operation that ran the batch, not the parent the request returned.")] = None,
         group: Annotated[Optional[StrictBool], Field(description="Paginate by operation run (trace) instead of by call; returns whole runs")] = None,
         start_date: Annotated[Optional[StrictStr], Field(description="Filter from this ISO datetime (inclusive)")] = None,
         end_date: Annotated[Optional[StrictStr], Field(description="Filter until this ISO datetime (exclusive)")] = None,
@@ -218,6 +223,8 @@ class LLMTracesApi:
         :type document_id: str
         :param memory_id: Filter to the operation run(s) that produced or consumed a given memory_unit
         :type memory_id: str
+        :param operation_id: Filter to the calls a background operation made while it ran. Each of those calls carries the id as `metadata.operation_id`. For an async retain that is the retain operation that ran the batch, not the parent the request returned.
+        :type operation_id: str
         :param group: Paginate by operation run (trace) instead of by call; returns whole runs
         :type group: bool
         :param start_date: Filter from this ISO datetime (inclusive)
@@ -262,6 +269,7 @@ class LLMTracesApi:
             trace_id=trace_id,
             document_id=document_id,
             memory_id=memory_id,
+            operation_id=operation_id,
             group=group,
             start_date=start_date,
             end_date=end_date,
@@ -302,6 +310,7 @@ class LLMTracesApi:
         trace_id: Annotated[Optional[StrictStr], Field(description="Filter to one operation run (all LLM calls sharing a trace)")] = None,
         document_id: Annotated[Optional[StrictStr], Field(description="Filter to LLM calls that processed a given document")] = None,
         memory_id: Annotated[Optional[StrictStr], Field(description="Filter to the operation run(s) that produced or consumed a given memory_unit")] = None,
+        operation_id: Annotated[Optional[StrictStr], Field(description="Filter to the calls a background operation made while it ran. Each of those calls carries the id as `metadata.operation_id`. For an async retain that is the retain operation that ran the batch, not the parent the request returned.")] = None,
         group: Annotated[Optional[StrictBool], Field(description="Paginate by operation run (trace) instead of by call; returns whole runs")] = None,
         start_date: Annotated[Optional[StrictStr], Field(description="Filter from this ISO datetime (inclusive)")] = None,
         end_date: Annotated[Optional[StrictStr], Field(description="Filter until this ISO datetime (exclusive)")] = None,
@@ -343,6 +352,8 @@ class LLMTracesApi:
         :type document_id: str
         :param memory_id: Filter to the operation run(s) that produced or consumed a given memory_unit
         :type memory_id: str
+        :param operation_id: Filter to the calls a background operation made while it ran. Each of those calls carries the id as `metadata.operation_id`. For an async retain that is the retain operation that ran the batch, not the parent the request returned.
+        :type operation_id: str
         :param group: Paginate by operation run (trace) instead of by call; returns whole runs
         :type group: bool
         :param start_date: Filter from this ISO datetime (inclusive)
@@ -387,6 +398,7 @@ class LLMTracesApi:
             trace_id=trace_id,
             document_id=document_id,
             memory_id=memory_id,
+            operation_id=operation_id,
             group=group,
             start_date=start_date,
             end_date=end_date,
@@ -422,6 +434,7 @@ class LLMTracesApi:
         trace_id,
         document_id,
         memory_id,
+        operation_id,
         group,
         start_date,
         end_date,
@@ -483,6 +496,10 @@ class LLMTracesApi:
         if memory_id is not None:
             
             _query_params.append(('memory_id', memory_id))
+            
+        if operation_id is not None:
+            
+            _query_params.append(('operation_id', operation_id))
             
         if group is not None:
             

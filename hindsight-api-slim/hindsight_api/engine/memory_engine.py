@@ -134,6 +134,7 @@ from .llm_trace import (
     LLMRequestTokenSums,
     LLMStatsSplit,
     LLMTraceRecorder,
+    background_operation,
     call_type_clause,
     current_trace_context,
     new_trace_context,
@@ -5202,17 +5203,18 @@ class MemoryEngine(MemoryEngineInterface):
                 # Continue with processing if we can't check status
 
         bank_id = task_dict.get("bank_id")
-        if not bank_id or task_type not in _TASKS_BOUND_TO_BANK:
-            await self._dispatch_task(task_dict, task_type, operation_id, schema)
-            return
-        # The job may write only into the bank life it started in: see bank_life (#6344).
-        try:
-            binding = await bind_job_bank(await self._get_backend(), bank_id)
-        except BankDeletedError:
-            logger.info(f"Skipping {task_type} for deleted bank {bank_id} (operation {operation_id})")
-            return
-        with binding:
-            await self._dispatch_task(task_dict, task_type, operation_id, schema)
+        with background_operation(operation_id):
+            if not bank_id or task_type not in _TASKS_BOUND_TO_BANK:
+                await self._dispatch_task(task_dict, task_type, operation_id, schema)
+                return
+            # The job may write only into the bank life it started in: see bank_life (#6344).
+            try:
+                binding = await bind_job_bank(await self._get_backend(), bank_id)
+            except BankDeletedError:
+                logger.info(f"Skipping {task_type} for deleted bank {bank_id} (operation {operation_id})")
+                return
+            with binding:
+                await self._dispatch_task(task_dict, task_type, operation_id, schema)
 
     async def _dispatch_task(
         self, task_dict: dict[str, Any], task_type: str | None, operation_id: str | None, schema: str | None
@@ -14608,6 +14610,7 @@ class MemoryEngine(MemoryEngineInterface):
         trace_id: str | None = None,
         document_id: str | None = None,
         memory_id: str | None = None,
+        operation_id: str | None = None,
         start_date: datetime | None = None,
         end_date: datetime | None = None,
         group: bool = False,
@@ -14675,6 +14678,11 @@ class MemoryEngine(MemoryEngineInterface):
             # both clauses reference the same bind param.
             where_clauses.append(f"(metadata->'memory_ids' ? ${idx} OR metadata->'source_memory_ids' ? ${idx})")
             params.append(memory_id)
+            idx += 1
+        if operation_id is not None:
+            # Set on every call a background operation's task makes (see background_operation).
+            where_clauses.append(f"metadata->>'operation_id' = ${idx}")
+            params.append(operation_id)
             idx += 1
         if start_date is not None:
             where_clauses.append(f"started_at >= ${idx}")

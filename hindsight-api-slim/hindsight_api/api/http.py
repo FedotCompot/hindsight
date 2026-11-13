@@ -10348,6 +10348,12 @@ def _register_routes(app: FastAPI):
         memory_id: str | None = Query(
             None, description="Filter to the operation run(s) that produced or consumed a given memory_unit"
         ),
+        operation_id: str | None = Query(
+            None,
+            description="Filter to the calls a background operation made while it ran. Each of those calls "
+            "carries the id as `metadata.operation_id`. For an async retain that is the retain operation "
+            "that ran the batch, not the parent the request returned.",
+        ),
         group: bool = Query(
             False, description="Paginate by operation run (trace) instead of by call; returns whole runs"
         ),
@@ -10370,6 +10376,7 @@ def _register_routes(app: FastAPI):
                 trace_id=trace_id,
                 document_id=document_id,
                 memory_id=memory_id,
+                operation_id=operation_id,
                 group=group,
                 start_date=_parse_iso_datetime(start_date, "start_date"),
                 end_date=_parse_iso_datetime(end_date, "end_date"),

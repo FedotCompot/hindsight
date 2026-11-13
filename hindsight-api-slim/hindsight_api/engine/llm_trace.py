@@ -324,6 +324,24 @@ def current_call_metadata() -> dict[str, Any] | None:
     return _call_metadata_ctx.get()
 
 
+# The background operation (``async_operations`` row) whose task is running, if any.
+_background_operation_ctx: ContextVar[str | None] = ContextVar("hindsight_llm_background_operation_ctx", default=None)
+
+
+@contextmanager
+def background_operation(operation_id: str | None) -> Iterator[None]:
+    """Attribute the model calls made inside to the background operation running them.
+
+    Each call's row carries the id as ``metadata.operation_id``, so an operation joins
+    to its calls and a call to its operation.
+    """
+    token = _background_operation_ctx.set(operation_id)
+    try:
+        yield
+    finally:
+        _background_operation_ctx.reset(token)
+
+
 @dataclass(frozen=True)
 class SchemaToolTurn:
     """The tool turn an in-flight ``call`` makes through a response schema.
@@ -804,6 +822,9 @@ class LLMTraceRecorder:
         call_metadata = current_call_metadata()
         if call_metadata:
             metadata.update(call_metadata)
+        operation_id = _background_operation_ctx.get()
+        if operation_id:
+            metadata["operation_id"] = operation_id
 
         llm_info: dict[str, Any] = {}
         request_params = current_request_context()

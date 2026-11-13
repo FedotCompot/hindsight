@@ -6340,6 +6340,18 @@ paths:
           nullable: true
           type: string
         style: form
+      - description: "Filter to the calls a background operation made while it ran.\
+          \ Each of those calls carries the id as `metadata.operation_id`. For an\
+          \ async retain that is the retain operation that ran the batch, not the\
+          \ parent the request returned."
+        explode: true
+        in: query
+        name: operation_id
+        required: false
+        schema:
+          nullable: true
+          type: string
+        style: form
       - description: Paginate by operation run (trace) instead of by call; returns
           whole runs
         explode: true
