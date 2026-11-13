@@ -5403,6 +5403,18 @@ export type OperationResponse = {
    */
   updated_at?: string | null;
   /**
+   * Started At
+   *
+   * When a worker picked this operation up for its current or last attempt. Null while it is queued, deferred or waiting for a retry, and on a parent batch operation, which only its sub-batches run.
+   */
+  started_at?: string | null;
+  /**
+   * Completed At
+   *
+   * When the operation reached a terminal status (completed, failed or cancelled); null before that. With `started_at` it gives the run time of the last attempt.
+   */
+  completed_at?: string | null;
+  /**
    * Status
    */
   status: string;
@@ -5472,6 +5484,12 @@ export type OperationStatusResponse = {
    * Updated At
    */
   updated_at?: string | null;
+  /**
+   * Started At
+   *
+   * When a worker picked this operation up for its current or last attempt. Null while it is queued, deferred or waiting for a retry, and on a parent batch operation, which only its sub-batches run.
+   */
+  started_at?: string | null;
   /**
    * Completed At
    */

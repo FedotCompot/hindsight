@@ -3928,6 +3928,21 @@ class OperationResponse(BaseModel):
         default=None,
         description="When this operation's row last changed (claim, progress heartbeat, or completion).",
     )
+    started_at: str | None = Field(
+        default=None,
+        description=(
+            "When a worker picked this operation up for its current or last attempt. Null while it is "
+            "queued, deferred or waiting for a retry, and on a parent batch operation, which only its "
+            "sub-batches run."
+        ),
+    )
+    completed_at: str | None = Field(
+        default=None,
+        description=(
+            "When the operation reached a terminal status (completed, failed or cancelled); null before "
+            "that. With `started_at` it gives the run time of the last attempt."
+        ),
+    )
     status: str
     error_message: str | None
     retry_count: int | None = Field(
@@ -4097,6 +4112,14 @@ class OperationStatusResponse(BaseModel):
     )
     created_at: str | None = None
     updated_at: str | None = None
+    started_at: str | None = Field(
+        default=None,
+        description=(
+            "When a worker picked this operation up for its current or last attempt. Null while it is "
+            "queued, deferred or waiting for a retry, and on a parent batch operation, which only its "
+            "sub-batches run."
+        ),
+    )
     completed_at: str | None = None
     error_message: str | None = None
     retry_count: int | None = Field(

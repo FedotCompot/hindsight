@@ -37,6 +37,7 @@ class OperationStatusResponse(BaseModel):
     mental_model_id: Optional[StrictStr] = None
     created_at: Optional[StrictStr] = None
     updated_at: Optional[StrictStr] = None
+    started_at: Optional[StrictStr] = None
     completed_at: Optional[StrictStr] = None
     error_message: Optional[StrictStr] = None
     retry_count: Optional[StrictInt] = None
@@ -46,7 +47,7 @@ class OperationStatusResponse(BaseModel):
     details: Optional[RefreshMentalModelOperationDetails] = None
     child_operations: Optional[List[ChildOperationStatus]] = None
     task_payload: Optional[Dict[str, Any]] = None
-    __properties: ClassVar[List[str]] = ["operation_id", "status", "operation_type", "id", "task_type", "mental_model_id", "created_at", "updated_at", "completed_at", "error_message", "retry_count", "next_retry_at", "progress", "result_metadata", "details", "child_operations", "task_payload"]
+    __properties: ClassVar[List[str]] = ["operation_id", "status", "operation_type", "id", "task_type", "mental_model_id", "created_at", "updated_at", "started_at", "completed_at", "error_message", "retry_count", "next_retry_at", "progress", "result_metadata", "details", "child_operations", "task_payload"]
 
     @field_validator('status')
     def status_validate_enum(cls, value):
@@ -137,6 +138,11 @@ class OperationStatusResponse(BaseModel):
         if self.updated_at is None and "updated_at" in self.model_fields_set:
             _dict['updated_at'] = None
 
+        # set to None if started_at (nullable) is None
+        # and model_fields_set contains the field
+        if self.started_at is None and "started_at" in self.model_fields_set:
+            _dict['started_at'] = None
+
         # set to None if completed_at (nullable) is None
         # and model_fields_set contains the field
         if self.completed_at is None and "completed_at" in self.model_fields_set:
@@ -202,6 +208,7 @@ class OperationStatusResponse(BaseModel):
             "mental_model_id": obj.get("mental_model_id"),
             "created_at": obj.get("created_at"),
             "updated_at": obj.get("updated_at"),
+            "started_at": obj.get("started_at"),
             "completed_at": obj.get("completed_at"),
             "error_message": obj.get("error_message"),
             "retry_count": obj.get("retry_count"),
