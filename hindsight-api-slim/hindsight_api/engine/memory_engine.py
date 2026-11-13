@@ -14760,7 +14760,7 @@ class MemoryEngine(MemoryEngineInterface):
         period: str = "7d",
         split_by: LLMStatsSplit | None = None,
     ) -> LLMRequestStatsResponse | None:
-        """LLM request counts and token sums by hour (1d) or by day (7d, 30d), for charting.
+        """LLM request counts, token sums and summed call time by hour (1d) or by day (7d, 30d), for charting.
 
         Returns None when the bank does not exist (mapped to 404 by the HTTP
         layer). Auth/tenant resolution happen in ``get_bank_profile``.
@@ -14821,7 +14821,8 @@ class MemoryEngine(MemoryEngineInterface):
                        COALESCE(SUM(output_tokens), 0) AS output_tokens,
                        COALESCE(SUM(cached_tokens), 0) AS cached_tokens,
                        COALESCE(SUM(thoughts_tokens), 0) AS thoughts_tokens,
-                       COALESCE(SUM(total_tokens), 0) AS total_tokens
+                       COALESCE(SUM(total_tokens), 0) AS total_tokens,
+                       COALESCE(SUM(duration_ms), 0) AS duration_ms
                 FROM {table}
                 WHERE {where_sql}
                 GROUP BY bucket, status, series
@@ -14836,6 +14837,7 @@ class MemoryEngine(MemoryEngineInterface):
         statuses_by_bucket: dict[str, dict[str, int]] = {}
         tokens_by_bucket: dict[str, dict[str, int]] = {}
         series_by_bucket: dict[str, dict[str, LLMRequestSeriesSums]] = {}
+        duration_by_bucket: dict[str, int] = {}
         order: list[str] = []
         for row in rows:
             key = row["bucket"].isoformat()
@@ -14843,13 +14845,18 @@ class MemoryEngine(MemoryEngineInterface):
                 statuses_by_bucket[key] = {}
                 tokens_by_bucket[key] = {"input": 0, "output": 0, "cached": 0, "thoughts": 0, "total": 0}
                 series_by_bucket[key] = {}
+                duration_by_bucket[key] = 0
                 order.append(key)
             statuses = statuses_by_bucket[key]
             statuses[row["status"]] = statuses.get(row["status"], 0) + row["count"]
+            duration_by_bucket[key] += row["duration_ms"]
             if split_by:
                 sums = series_by_bucket[key].setdefault(row["series"], LLMRequestSeriesSums(calls=0, tokens=0))
                 sums.calls += row["count"]
                 sums.tokens += row["total_tokens"] + row["thoughts_tokens"]
+                sums.duration_ms += row["duration_ms"]
+                if row["status"] == "error":
+                    sums.errors += row["count"]
             tok = tokens_by_bucket[key]
             tok["input"] += row["input_tokens"]
             tok["output"] += row["output_tokens"]
@@ -14869,6 +14876,7 @@ class MemoryEngine(MemoryEngineInterface):
                     statuses=statuses_by_bucket[k],
                     total=sum(statuses_by_bucket[k].values()),
                     tokens=LLMRequestTokenSums(**tokens_by_bucket[k]),
+                    duration_ms=duration_by_bucket[k],
                     series=series_by_bucket[k] if split_by else None,
                 )
                 for k in order

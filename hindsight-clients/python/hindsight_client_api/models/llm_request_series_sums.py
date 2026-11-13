@@ -18,17 +18,19 @@ import re  # noqa: F401
 import json
 
 from pydantic import BaseModel, ConfigDict, StrictInt
-from typing import Any, ClassVar, Dict, List
+from typing import Any, ClassVar, Dict, List, Optional
 from typing import Optional, Set
 from typing_extensions import Self
 
 class LLMRequestSeriesSums(BaseModel):
     """
-    Calls and tokens (total + reasoning) of one model or operation within a time bucket.
+    What one model or operation did within a time bucket.  Calls, tokens (total + reasoning), the summed duration of the calls, and how many failed.
     """ # noqa: E501
     calls: StrictInt
     tokens: StrictInt
-    __properties: ClassVar[List[str]] = ["calls", "tokens"]
+    duration_ms: Optional[StrictInt] = 0
+    errors: Optional[StrictInt] = 0
+    __properties: ClassVar[List[str]] = ["calls", "tokens", "duration_ms", "errors"]
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -82,7 +84,9 @@ class LLMRequestSeriesSums(BaseModel):
 
         _obj = cls.model_validate({
             "calls": obj.get("calls"),
-            "tokens": obj.get("tokens")
+            "tokens": obj.get("tokens"),
+            "duration_ms": obj.get("duration_ms") if obj.get("duration_ms") is not None else 0,
+            "errors": obj.get("errors") if obj.get("errors") is not None else 0
         })
         return _obj
 

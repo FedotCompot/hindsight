@@ -549,7 +549,7 @@ class LLMTracesApi:
         operation: Annotated[Optional[StrictStr], Field(description="Filter by operation")] = None,
         call_type: Annotated[Optional[StrictStr], Field(description="Filter by kind of model call: llm, embedding, rerank or decision")] = None,
         period: Annotated[Optional[StrictStr], Field(description="Time period: 1d (by hour), 7d, or 30d (by day)")] = None,
-        split_by: Annotated[Optional[StrictStr], Field(description="Also split each bucket by model or by operation (returned in `series`)")] = None,
+        split_by: Annotated[Optional[StrictStr], Field(description="Also split each bucket by model or by operation (returned in `series`: calls, tokens, summed duration and failed calls of each)")] = None,
         authorization: Optional[StrictStr] = None,
         _request_timeout: Union[
             None,
@@ -566,7 +566,7 @@ class LLMTracesApi:
     ) -> LLMRequestStatsResponse:
         """LLM request statistics
 
-        Get LLM request counts grouped by time bucket and status for charting. Only requests within HINDSIGHT_API_LLM_TRACE_RETENTION_DAYS are kept, so a period longer than `retention_days` (in the response; null = kept forever) only covers the last `retention_days`.
+        Get LLM request counts grouped by time bucket and status for charting, with each bucket's token sums and the summed duration of its calls. Only requests within HINDSIGHT_API_LLM_TRACE_RETENTION_DAYS are kept, so a period longer than `retention_days` (in the response; null = kept forever) only covers the last `retention_days`.
 
         :param bank_id: (required)
         :type bank_id: str
@@ -576,7 +576,7 @@ class LLMTracesApi:
         :type call_type: str
         :param period: Time period: 1d (by hour), 7d, or 30d (by day)
         :type period: str
-        :param split_by: Also split each bucket by model or by operation (returned in `series`)
+        :param split_by: Also split each bucket by model or by operation (returned in `series`: calls, tokens, summed duration and failed calls of each)
         :type split_by: str
         :param authorization:
         :type authorization: str
@@ -638,7 +638,7 @@ class LLMTracesApi:
         operation: Annotated[Optional[StrictStr], Field(description="Filter by operation")] = None,
         call_type: Annotated[Optional[StrictStr], Field(description="Filter by kind of model call: llm, embedding, rerank or decision")] = None,
         period: Annotated[Optional[StrictStr], Field(description="Time period: 1d (by hour), 7d, or 30d (by day)")] = None,
-        split_by: Annotated[Optional[StrictStr], Field(description="Also split each bucket by model or by operation (returned in `series`)")] = None,
+        split_by: Annotated[Optional[StrictStr], Field(description="Also split each bucket by model or by operation (returned in `series`: calls, tokens, summed duration and failed calls of each)")] = None,
         authorization: Optional[StrictStr] = None,
         _request_timeout: Union[
             None,
@@ -655,7 +655,7 @@ class LLMTracesApi:
     ) -> ApiResponse[LLMRequestStatsResponse]:
         """LLM request statistics
 
-        Get LLM request counts grouped by time bucket and status for charting. Only requests within HINDSIGHT_API_LLM_TRACE_RETENTION_DAYS are kept, so a period longer than `retention_days` (in the response; null = kept forever) only covers the last `retention_days`.
+        Get LLM request counts grouped by time bucket and status for charting, with each bucket's token sums and the summed duration of its calls. Only requests within HINDSIGHT_API_LLM_TRACE_RETENTION_DAYS are kept, so a period longer than `retention_days` (in the response; null = kept forever) only covers the last `retention_days`.
 
         :param bank_id: (required)
         :type bank_id: str
@@ -665,7 +665,7 @@ class LLMTracesApi:
         :type call_type: str
         :param period: Time period: 1d (by hour), 7d, or 30d (by day)
         :type period: str
-        :param split_by: Also split each bucket by model or by operation (returned in `series`)
+        :param split_by: Also split each bucket by model or by operation (returned in `series`: calls, tokens, summed duration and failed calls of each)
         :type split_by: str
         :param authorization:
         :type authorization: str
@@ -727,7 +727,7 @@ class LLMTracesApi:
         operation: Annotated[Optional[StrictStr], Field(description="Filter by operation")] = None,
         call_type: Annotated[Optional[StrictStr], Field(description="Filter by kind of model call: llm, embedding, rerank or decision")] = None,
         period: Annotated[Optional[StrictStr], Field(description="Time period: 1d (by hour), 7d, or 30d (by day)")] = None,
-        split_by: Annotated[Optional[StrictStr], Field(description="Also split each bucket by model or by operation (returned in `series`)")] = None,
+        split_by: Annotated[Optional[StrictStr], Field(description="Also split each bucket by model or by operation (returned in `series`: calls, tokens, summed duration and failed calls of each)")] = None,
         authorization: Optional[StrictStr] = None,
         _request_timeout: Union[
             None,
@@ -744,7 +744,7 @@ class LLMTracesApi:
     ) -> RESTResponseType:
         """LLM request statistics
 
-        Get LLM request counts grouped by time bucket and status for charting. Only requests within HINDSIGHT_API_LLM_TRACE_RETENTION_DAYS are kept, so a period longer than `retention_days` (in the response; null = kept forever) only covers the last `retention_days`.
+        Get LLM request counts grouped by time bucket and status for charting, with each bucket's token sums and the summed duration of its calls. Only requests within HINDSIGHT_API_LLM_TRACE_RETENTION_DAYS are kept, so a period longer than `retention_days` (in the response; null = kept forever) only covers the last `retention_days`.
 
         :param bank_id: (required)
         :type bank_id: str
@@ -754,7 +754,7 @@ class LLMTracesApi:
         :type call_type: str
         :param period: Time period: 1d (by hour), 7d, or 30d (by day)
         :type period: str
-        :param split_by: Also split each bucket by model or by operation (returned in `series`)
+        :param split_by: Also split each bucket by model or by operation (returned in `series`: calls, tokens, summed duration and failed calls of each)
         :type split_by: str
         :param authorization:
         :type authorization: str
