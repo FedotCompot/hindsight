@@ -27,7 +27,9 @@ export function OperationLLMRequests({
     client
       .listLLMRequests(bankId, { operation_id: operationId, group: true, limit: 50 })
       .then((data) => {
-        if (!cancelled) setRows(data.items || []);
+        // An older server ignores the filter and answers with every request.
+        const own = (data.items || []).filter((row) => row.metadata?.operation_id === operationId);
+        if (!cancelled) setRows(own);
       })
       .catch(() => {
         // The API client already reports the error; the section just stays hidden.

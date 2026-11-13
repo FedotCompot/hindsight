@@ -58,11 +58,12 @@ afterEach(() => {
 
 describe("OperationLLMRequests", () => {
   it("lists one row per run the operation made", async () => {
+    const own = { metadata: { operation_id: "op-1" } };
     listLLMRequests.mockResolvedValue({
       items: [
-        call("c1", { trace_id: "run-1" }),
-        call("c2", { trace_id: "run-1", status: "error" }),
-        call("c3", { trace_id: "run-2", operation: "consolidation" }),
+        call("c1", { trace_id: "run-1", ...own }),
+        call("c2", { trace_id: "run-1", status: "error", ...own }),
+        call("c3", { trace_id: "run-2", operation: "consolidation", ...own }),
       ],
     });
 
@@ -75,6 +76,20 @@ describe("OperationLLMRequests", () => {
     );
     expect(screen.getAllByRole("button")).toHaveLength(2);
     expect(screen.getByText(/"calls":2,"tokens":"200"/)).toBeTruthy();
+  });
+
+  it("shows none of the requests a server that ignores the filter sends back", async () => {
+    listLLMRequests.mockResolvedValue({
+      items: [
+        call("c1", { trace_id: "run-1" }),
+        call("c2", { metadata: { operation_id: "op-2" } }),
+      ],
+    });
+
+    const { container } = render(<OperationLLMRequests bankId="bank-a" operationId="op-1" />);
+
+    await waitFor(() => expect(listLLMRequests).toHaveBeenCalled());
+    expect(container.innerHTML).toBe("");
   });
 
   it("renders nothing for an operation with no recorded calls", async () => {
